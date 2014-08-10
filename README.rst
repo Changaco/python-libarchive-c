@@ -38,3 +38,8 @@ To create an archive::
         archive.add_files('libarchive/', 'README.rst')
 
 Use ``libarchive.fd_writer`` if you want to write to a file descriptor instead.
+
+License
+=======
+
+LGPLv2 (or any later version)

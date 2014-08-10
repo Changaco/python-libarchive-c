@@ -1,8 +1,4 @@
-/libarchive.egg-info/
+*.egg-info/
+/build/
 /dist/
 *.pyc
-
-/bin/
-/local/
-/include/
-/lib/
