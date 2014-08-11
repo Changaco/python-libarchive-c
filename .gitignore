@@ -1,4 +1,7 @@
 *.egg-info/
 /build/
 /dist/
+/env/
+/htmlcov/
+.coverage
 *.pyc
