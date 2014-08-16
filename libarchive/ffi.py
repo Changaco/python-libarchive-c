@@ -18,8 +18,6 @@ from .exception import ArchiveError
 
 page_size = pythonapi.getpagesize()
 
-_logger = logging.getLogger(__name__)
-
 _LIB_FILEPATH = ctypes.util.find_library('libarchive') or 'libarchive.so'
 libarchive = ctypes.cdll.LoadLibrary(_LIB_FILEPATH)
 
@@ -64,7 +62,7 @@ def check_int(retcode, func, args):
     if retcode >= 0:
         return retcode
     elif retcode == ARCHIVE_WARN:
-        _logger.warn(error_string(args[0]))
+        logging.warning(error_string(args[0]))
         return retcode
     else:
         raise archive_error(args[0])
@@ -105,9 +103,27 @@ ffi('entry_free', [c_archive_entry_p], None)
 
 ffi('read_new', [], c_archive_p, check_null)
 
-ffi('read_support_filter_all', [c_archive_p], c_int, check_int)
-ffi('read_support_format_all', [c_archive_p], c_int, check_int)
-ffi('read_support_format_7zip', [c_archive_p], c_int, check_int)
+READ_FORMATS = set((
+    '7zip', 'all', 'ar', 'cab', 'cpio', 'empty', 'iso9660', 'lha', 'mtree',
+    'rar', 'raw', 'tar', 'xar', 'zip'
+))
+for f_name in list(READ_FORMATS):
+    try:
+        ffi('read_support_format_'+f_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        logging.warning('read format "%s" is not supported' % f_name)
+        READ_FORMATS.remove(f_name)
+
+READ_FILTERS = set((
+    'all', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
+    'lzop', 'none', 'rpm', 'uu', 'xz'
+))
+for f_name in list(READ_FILTERS):
+    try:
+        ffi('read_support_filter_'+f_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        logging.warning('read filter "%s" is not supported' % f_name)
+        READ_FILTERS.remove(f_name)
 
 ffi('read_open_filename', [c_archive_p, c_char_p, c_size_t], c_int, check_int)
 ffi('read_open_filename_w', [c_archive_p, c_wchar_p, c_size_t],
@@ -143,13 +159,28 @@ ffi('write_new', [], c_archive_p, check_null)
 ffi('write_disk_new', [], c_archive_p, check_null)
 ffi('write_disk_set_options', [c_archive_p, c_int], c_int, check_int)
 
-ffi('write_set_format_7zip', [c_archive_p], c_int, check_int)
-ffi('write_set_format_ustar', [c_archive_p], c_int, check_int)
+WRITE_FORMATS = set((
+    '7zip', 'ar_bsd', 'ar_svr4', 'cpio', 'cpio_newc', 'gnutar', 'iso9660',
+    'mtree', 'mtree_classic', 'pax', 'pax_restricted', 'shar', 'shar_dump',
+    'ustar', 'v7tar', 'xar', 'zip'
+))
+for f_name in list(WRITE_FORMATS):
+    try:
+        ffi('write_set_format_'+f_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        logging.warning('write format "%s" is not supported' % f_name)
+        WRITE_FORMATS.remove(f_name)
 
-ffi('write_add_filter_bzip2', [c_archive_p], c_int, check_int)
-ffi('write_add_filter_compress', [c_archive_p], c_int, check_int)
-ffi('write_add_filter_gzip', [c_archive_p], c_int, check_int)
-ffi('write_add_filter_none', [c_archive_p], c_int, check_int)
+WRITE_FILTERS = set((
+    'b64encode', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
+    'lzop', 'uuencode', 'xz'
+))
+for f_name in list(WRITE_FILTERS):
+    try:
+        ffi('write_add_filter_'+f_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        logging.warning('write filter "%s" is not supported' % f_name)
+        WRITE_FILTERS.remove(f_name)
 
 ffi('write_open',
     [c_archive_p, c_void_p, OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK],
