@@ -5,46 +5,29 @@
 
 from __future__ import division, print_function, unicode_literals
 
-from os import chdir, getcwd
-from os.path import abspath, join
-from shutil import rmtree
-from tempfile import mkdtemp
-
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 
-from . import check_archive, treestat
+from . import check_archive, in_dir, treestat
 
 
-def test_files():
+def test_files(tmpdir):
+    archive_path = tmpdir.strpath+'/test.tar.gz'
 
     # Collect information on what should be in the archive
     tree = treestat('libarchive')
 
-    # Make a temporary dir
-    basedir = abspath(getcwd())
-    tmpdir = mkdtemp()
+    # Create an archive of our libarchive/ directory
+    with libarchive.file_writer(archive_path, 'ustar', 'gzip') as archive:
+        archive.add_files('libarchive/')
 
-    try:
-        archive_path = join(tmpdir, 'test.tar.gz')
+    # Read the archive and check that the data is correct
+    with libarchive.file_reader(archive_path) as archive:
+        check_archive(archive, tree)
 
-        # Create an archive of our libarchive/ directory
-        with libarchive.file_writer(archive_path, 'ustar', 'gzip') as archive:
-            archive.add_files('libarchive/')
-
-        # Read the archive and check that the data is correct
-        with libarchive.file_reader(archive_path) as archive:
-            check_archive(archive, tree)
-
-        # Move to the temporary dir
-        chdir(tmpdir)
-
-        # Extract the archive and check that the data is intact
+    # Extract the archive in tmpdir and check that the data is intact
+    with in_dir(tmpdir.strpath):
         flags = EXTRACT_OWNER | EXTRACT_PERM | EXTRACT_TIME
         libarchive.extract_file(archive_path, flags)
         tree2 = treestat('libarchive')
         assert tree2 == tree
-
-    finally:
-        chdir(basedir)
-        rmtree(tmpdir)
