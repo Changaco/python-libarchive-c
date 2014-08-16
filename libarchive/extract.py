@@ -12,7 +12,7 @@ from .ffi import (
     write_disk_new, write_disk_set_options, write_free, write_header,
     read_data_block, write_data_block, write_finish_entry, ARCHIVE_EOF
 )
-from .read import file_reader, memory_reader
+from .read import fd_reader, file_reader, memory_reader
 
 
 EXTRACT_OWNER = 0x0001
@@ -58,6 +58,13 @@ def extract_entries(entries, flags=0):
                     break
                 write_data_block(write_p, buff, size, offset)
             write_finish_entry(write_p)
+
+
+def extract_fd(fd, flags=0):
+    """Extracts an archive from a file descriptor into the current directory.
+    """
+    with fd_reader(fd) as archive:
+        extract_entries(archive, flags)
 
 
 def extract_file(filepath, flags=0):
