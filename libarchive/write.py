@@ -6,7 +6,7 @@
 from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
-from ctypes import cast, c_char, POINTER
+from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
 
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
@@ -123,4 +123,13 @@ def fd_writer(fd, format_name, filter_name=None):
 def file_writer(filepath, format_name, filter_name=None):
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
+        yield ArchiveWrite(archive_p)
+
+
+@contextmanager
+def memory_writer(buf, format_name, filter_name=None):
+    with new_archive_write(format_name, filter_name) as archive_p:
+        used = byref(c_size_t())
+        buf_p = cast(buf, c_void_p)
+        ffi.write_open_memory(archive_p, buf_p, len(buf), used)
         yield ArchiveWrite(archive_p)
