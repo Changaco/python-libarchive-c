@@ -79,10 +79,9 @@ class ArchiveWrite(object):
 
 
 @contextmanager
-def new_archive_write(format_name=None, filter_name=None):
+def new_archive_write(format_name, filter_name=None):
     archive_p = ffi.write_new()
-    if format_name:
-        getattr(ffi, 'write_set_format_'+format_name)(archive_p)
+    getattr(ffi, 'write_set_format_'+format_name)(archive_p)
     if filter_name:
         getattr(ffi, 'write_add_filter_'+filter_name)(archive_p)
     try:
