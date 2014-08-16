@@ -5,9 +5,10 @@
 
 from __future__ import division, print_function, unicode_literals
 
+from contextlib import contextmanager
 from copy import copy
-from os import stat, walk
-from os.path import join
+from os import chdir, getcwd, stat, walk
+from os.path import abspath, join
 from stat import S_ISREG
 
 
@@ -27,6 +28,16 @@ def check_archive(archive, tree):
 
     # Check that there are no missing directories or files
     assert len(tree2) == 0
+
+
+@contextmanager
+def in_dir(dirpath):
+    prev = abspath(getcwd())
+    chdir(dirpath)
+    try:
+        yield
+    finally:
+        chdir(prev)
 
 
 def stat_dict(path):
