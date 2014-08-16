@@ -125,6 +125,7 @@ for f_name in list(READ_FILTERS):
         logging.warning('read filter "%s" is not supported' % f_name)
         READ_FILTERS.remove(f_name)
 
+ffi('read_open_fd', [c_archive_p, c_int, c_size_t], c_int, check_int)
 ffi('read_open_filename', [c_archive_p, c_char_p, c_size_t], c_int, check_int)
 ffi('read_open_filename_w', [c_archive_p, c_wchar_p, c_size_t],
     c_int, check_int)

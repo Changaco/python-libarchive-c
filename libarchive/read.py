@@ -7,7 +7,7 @@ from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
 from ctypes import cast, c_void_p
-from os import stat
+from os import fstat, stat
 
 from . import ffi
 from .ffi import ARCHIVE_EOF
@@ -46,6 +46,19 @@ def new_archive_read(format_name='all', filter_name='all'):
         yield archive_p
     finally:
         ffi.read_free(archive_p)
+
+
+@contextmanager
+def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
+    """Read an archive from a file descriptor.
+    """
+    with new_archive_read(format_name, filter_name) as archive_p:
+        try:
+            block_size = fstat(fd).st_blksize
+        except (OSError, AttributeError):
+            pass
+        ffi.read_open_fd(archive_p, fd, block_size)
+        yield ArchiveRead(archive_p)
 
 
 @contextmanager
