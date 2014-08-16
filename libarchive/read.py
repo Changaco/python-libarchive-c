@@ -34,7 +34,7 @@ class ArchiveRead(object):
 
 
 @contextmanager
-def new_archive_read(filter_name='all', format_name='all'):
+def new_archive_read(format_name='all', filter_name='all'):
     """Creates an archive struct suitable for reading from an archive.
 
     Returns a pointer if successful. Raises ArchiveError on error.
@@ -49,22 +49,22 @@ def new_archive_read(filter_name='all', format_name='all'):
 
 
 @contextmanager
-def file_reader(filepath, block_size=4096):
+def file_reader(path, format_name='all', filter_name='all', block_size=4096):
     """Read an archive from a file.
     """
-    with new_archive_read() as archive_p:
+    with new_archive_read(format_name, filter_name) as archive_p:
         try:
-            block_size = stat(filepath).st_blksize
-        except (OSError, AttributeError):
+            block_size = stat(path).st_blksize
+        except (OSError, AttributeError):  # pragma: no cover
             pass
-        ffi.read_open_filename_w(archive_p, filepath, block_size)
+        ffi.read_open_filename_w(archive_p, path, block_size)
         yield ArchiveRead(archive_p)
 
 
 @contextmanager
-def memory_reader(buffer_):
+def memory_reader(buf, format_name='all', filter_name='all'):
     """Read an archive from memory.
     """
-    with new_archive_read() as archive_p:
+    with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open_memory(archive_p, cast(buf, c_void_p), len(buf))
         yield ArchiveRead(archive_p)
