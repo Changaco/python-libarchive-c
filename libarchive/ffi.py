@@ -48,8 +48,9 @@ c_archive_entry_p = c_void_p
 
 # Helper functions
 
-def archive_error(archive_p):
-    raise ArchiveError(error_string(archive_p), errno=errno(archive_p))
+def archive_error(archive_p, retcode):
+    msg = error_string(archive_p)
+    raise ArchiveError(msg, errno(archive_p), retcode, archive_p)
 
 
 def check_null(ret, func, args):
@@ -65,7 +66,7 @@ def check_int(retcode, func, args):
         logging.warning(error_string(args[0]))
         return retcode
     else:
-        raise archive_error(args[0])
+        raise archive_error(args[0], retcode)
 
 
 def ffi(name, argtypes, restype, errcheck=None):
