@@ -111,7 +111,7 @@ READ_FORMATS = set((
 for f_name in list(READ_FORMATS):
     try:
         ffi('read_support_format_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         logging.warning('read format "%s" is not supported' % f_name)
         READ_FORMATS.remove(f_name)
 
@@ -122,7 +122,7 @@ READ_FILTERS = set((
 for f_name in list(READ_FILTERS):
     try:
         ffi('read_support_filter_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         logging.warning('read filter "%s" is not supported' % f_name)
         READ_FILTERS.remove(f_name)
 
@@ -168,7 +168,7 @@ WRITE_FORMATS = set((
 for f_name in list(WRITE_FORMATS):
     try:
         ffi('write_set_format_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         logging.warning('write format "%s" is not supported' % f_name)
         WRITE_FORMATS.remove(f_name)
 
@@ -179,7 +179,7 @@ WRITE_FILTERS = set((
 for f_name in list(WRITE_FILTERS):
     try:
         ffi('write_add_filter_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         logging.warning('write filter "%s" is not supported' % f_name)
         WRITE_FILTERS.remove(f_name)
 

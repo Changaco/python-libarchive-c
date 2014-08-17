@@ -51,7 +51,7 @@ class ArchiveWrite(object):
 
         block_size = ffi.write_get_bytes_per_block(write_p)
         if block_size <= 0:
-            block_size = 10240
+            block_size = 10240  # pragma: no cover
 
         with new_archive_entry() as entry_p:
             entry = ArchiveEntry(None, entry_p)
@@ -73,7 +73,7 @@ class ArchiveWrite(object):
                                     write_data(write_p, data, len(data))
                         except IOError as e:
                             if e.errno != 21:
-                                raise
+                                raise  # pragma: no cover
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
 
