@@ -29,9 +29,6 @@ class ArchiveEntry(object):
     def __str__(self):
         return self.pathname
 
-    def __repr__(self):
-        return ('[%s] SIZE=(%d)' % (self.pathname, self.size))
-
     def get_blocks(self, block_size=ffi.page_size):
         archive_p = self._archive_p
         buf = create_string_buffer(block_size)
