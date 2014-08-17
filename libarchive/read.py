@@ -55,7 +55,7 @@ def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
     with new_archive_read(format_name, filter_name) as archive_p:
         try:
             block_size = fstat(fd).st_blksize
-        except (OSError, AttributeError):
+        except (OSError, AttributeError):  # pragma: no cover
             pass
         ffi.read_open_fd(archive_p, fd, block_size)
         yield ArchiveRead(archive_p)
