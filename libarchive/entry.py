@@ -63,4 +63,5 @@ class ArchiveEntry(object):
 
     @property
     def size(self):
-        return ffi.entry_size(self._entry_p)
+        if ffi.entry_size_is_set(self._entry_p):
+            return ffi.entry_size(self._entry_p)
