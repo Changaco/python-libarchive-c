@@ -15,12 +15,14 @@ from stat import S_ISREG
 def check_archive(archive, tree):
     tree2 = copy(tree)
     for e in archive:
-        epath = str(e)
+        epath = str(e).rstrip('/')
         assert epath in tree2
         estat = tree2.pop(epath)
         assert e.mtime == int(estat['mtime'])
-        if epath[-1] != '/':
-            assert e.size == estat['size']
+        if not e.isdir:
+            size = e.size
+            if size is not None:
+                assert size == estat['size']
             with open(epath, 'rb') as f:
                 for block in e.get_blocks():
                     assert f.read(len(block)) == block
@@ -51,7 +53,7 @@ def stat_dict(path):
 def treestat(d):
     r = {}
     for dirpath, dirnames, filenames in walk(d):
-        r[dirpath+'/'] = stat_dict(dirpath)
+        r[dirpath] = stat_dict(dirpath)
         for fname in filenames:
             fpath = join(dirpath, fname)
             r[fpath] = stat_dict(fpath)

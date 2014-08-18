@@ -29,6 +29,10 @@ class ArchiveEntry(object):
     def __str__(self):
         return self.pathname
 
+    @property
+    def filetype(self):
+        return ffi.entry_filetype(self._entry_p)
+
     def get_blocks(self, block_size=ffi.page_size):
         archive_p = self._archive_p
         buf = create_string_buffer(block_size)
@@ -38,6 +42,10 @@ class ArchiveEntry(object):
             if r == 0:
                 break
             yield buf.raw[0:r]
+
+    @property
+    def isdir(self):
+        return bool(self.filetype & ffi.AE_IFDIR)
 
     @property
     def mtime(self):

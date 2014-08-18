@@ -22,12 +22,23 @@ _LIB_FILEPATH = ctypes.util.find_library('libarchive') or 'libarchive.so'
 libarchive = ctypes.cdll.LoadLibrary(_LIB_FILEPATH)
 
 
+# Constants
+
 ARCHIVE_EOF = 1       # Found end of archive.
 ARCHIVE_OK = 0        # Operation was successful.
 ARCHIVE_RETRY = -10   # Retry might succeed.
 ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
+
+AE_IFMT = 0o170000
+AE_IFREG = 0o100000
+AE_IFLNK = 0o120000
+AE_IFSOCK = 0o140000
+AE_IFCHR = 0o020000
+AE_IFBLK = 0o060000
+AE_IFDIR = 0o040000
+AE_IFIFO = 0o010000
 
 
 # Callback types
@@ -90,6 +101,7 @@ error_string = ffi('error_string', [c_archive_p], c_char_p)
 
 ffi('entry_new', [], c_archive_entry_p, check_null)
 
+ffi('entry_filetype', [c_archive_entry_p], c_int)
 ffi('entry_mtime', [c_archive_entry_p], c_int)
 ffi('entry_pathname_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_sourcepath', [c_archive_entry_p], c_char_p)
