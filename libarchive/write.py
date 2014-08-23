@@ -87,6 +87,7 @@ def new_archive_write(format_name, filter_name=None):
     try:
         yield archive_p
     finally:
+        ffi.write_close(archive_p)
         ffi.write_free(archive_p)
 
 
