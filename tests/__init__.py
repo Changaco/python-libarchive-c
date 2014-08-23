@@ -26,7 +26,8 @@ def check_archive(archive, tree):
             with open(epath, 'rb') as f:
                 for block in e.get_blocks():
                     assert f.read(len(block)) == block
-                assert not f.read()
+                leftover = f.read()
+                assert not leftover
 
     # Check that there are no missing directories or files
     assert len(tree2) == 0
