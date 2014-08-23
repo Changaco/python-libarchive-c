@@ -79,3 +79,25 @@ def test_files(tmpdir):
         libarchive.extract_file(archive_path, flags)
         tree2 = treestat('libarchive')
         assert tree2 == tree
+
+
+def test_custom_writer():
+
+    # Collect information on what should be in the archive
+    tree = treestat('libarchive')
+
+    # Create an archive of our libarchive/ directory
+    blocks = []
+
+    def write_cb(data):
+        blocks.append(data[:])
+        return len(data)
+
+    with libarchive.custom_writer(write_cb, 'zip') as archive:
+        archive.add_files('libarchive/')
+        pass
+
+    # Read the archive and check that the data is correct
+    buf = b''.join(blocks)
+    with libarchive.memory_reader(buf) as archive:
+        check_archive(archive, tree)
