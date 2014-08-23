@@ -92,23 +92,21 @@ def new_archive_write(format_name, filter_name=None):
 
 
 @contextmanager
-def custom_writer(write_cb, format_name, filter_name=None,
-                  open_cb=VOID_CB, close_cb=VOID_CB, block_size=page_size):
+def custom_writer(write_func, format_name, filter_name=None,
+                  open_func=VOID_CB, close_func=VOID_CB, block_size=page_size):
 
     def write_cb_internal(archive_p, context, buffer_, length):
         data = cast(buffer_, POINTER(c_char * length))[0]
-        return write_cb(data)
+        return write_func(data)
+
+    open_cb = OPEN_CALLBACK(open_func)
+    write_cb = WRITE_CALLBACK(write_cb_internal)
+    close_cb = CLOSE_CALLBACK(close_func)
 
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
-        ffi.write_open(
-            archive_p,
-            None,
-            OPEN_CALLBACK(open_cb),
-            WRITE_CALLBACK(write_cb_internal),
-            CLOSE_CALLBACK(close_cb)
-        )
+        ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
         yield ArchiveWrite(archive_p)
 
 
