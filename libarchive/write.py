@@ -96,7 +96,7 @@ def custom_writer(write_cb, format_name, filter_name=None,
 
     def write_cb_internal(archive_p, context, buffer_, length):
         data = cast(buffer_, POINTER(c_char * length))[0]
-        return write_cb(data, length)
+        return write_cb(data)
 
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_set_bytes_in_last_block(archive_p, 1)
