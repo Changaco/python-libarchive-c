@@ -31,3 +31,15 @@ def test_check_null():
     with pytest.raises(ArchiveError) as e:
         ffi.check_null(None, print, [])
     assert str(e)
+
+
+def test_error_string_decoding(monkeypatch):
+    monkeypatch.setattr(ffi, 'error_string', lambda *_: None)
+    r = ffi._error_string(None)
+    assert r is None
+    monkeypatch.setattr(ffi, 'error_string', lambda *_: b'a')
+    r = ffi._error_string(None)
+    assert isinstance(r, type(''))
+    monkeypatch.setattr(ffi, 'error_string', lambda *_: '\xe9'.encode('utf8'))
+    r = ffi._error_string(None)
+    assert isinstance(r, bytes)
