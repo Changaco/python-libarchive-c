@@ -16,6 +16,8 @@ import logging
 from .exception import ArchiveError
 
 
+logger = logging.getLogger('libarchive')
+
 page_size = pythonapi.getpagesize()
 
 _LIB_FILEPATH = ctypes.util.find_library('libarchive') or 'libarchive.so'
@@ -59,8 +61,18 @@ c_archive_entry_p = c_void_p
 
 # Helper functions
 
-def archive_error(archive_p, retcode):
+def _error_string(archive_p):
     msg = error_string(archive_p)
+    if msg is None:
+        return
+    try:
+        return msg.decode('ascii')
+    except UnicodeDecodeError:
+        return msg
+
+
+def archive_error(archive_p, retcode):
+    msg = _error_string(archive_p)
     raise ArchiveError(msg, errno(archive_p), retcode, archive_p)
 
 
@@ -74,7 +86,7 @@ def check_int(retcode, func, args):
     if retcode >= 0:
         return retcode
     elif retcode == ARCHIVE_WARN:
-        logging.warning(error_string(args[0]))
+        logger.warning(_error_string(args[0]))
         return retcode
     else:
         raise archive_error(args[0], retcode)
@@ -125,7 +137,7 @@ for f_name in list(READ_FORMATS):
     try:
         ffi('read_support_format_'+f_name, [c_archive_p], c_int, check_int)
     except AttributeError:  # pragma: no cover
-        logging.warning('read format "%s" is not supported' % f_name)
+        logger.warning('read format "%s" is not supported' % f_name)
         READ_FORMATS.remove(f_name)
 
 READ_FILTERS = set((
@@ -136,7 +148,7 @@ for f_name in list(READ_FILTERS):
     try:
         ffi('read_support_filter_'+f_name, [c_archive_p], c_int, check_int)
     except AttributeError:  # pragma: no cover
-        logging.warning('read filter "%s" is not supported' % f_name)
+        logger.warning('read filter "%s" is not supported' % f_name)
         READ_FILTERS.remove(f_name)
 
 ffi('read_open_fd', [c_archive_p, c_int, c_size_t], c_int, check_int)
@@ -182,7 +194,7 @@ for f_name in list(WRITE_FORMATS):
     try:
         ffi('write_set_format_'+f_name, [c_archive_p], c_int, check_int)
     except AttributeError:  # pragma: no cover
-        logging.warning('write format "%s" is not supported' % f_name)
+        logger.warning('write format "%s" is not supported' % f_name)
         WRITE_FORMATS.remove(f_name)
 
 WRITE_FILTERS = set((
@@ -193,7 +205,7 @@ for f_name in list(WRITE_FILTERS):
     try:
         ffi('write_add_filter_'+f_name, [c_archive_p], c_int, check_int)
     except AttributeError:  # pragma: no cover
-        logging.warning('write filter "%s" is not supported' % f_name)
+        logger.warning('write filter "%s" is not supported' % f_name)
         WRITE_FILTERS.remove(f_name)
 
 ffi('write_open',

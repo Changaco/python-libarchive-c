@@ -21,7 +21,7 @@ def test_add_files_nonexistent():
 
 def test_check_int_logs_warnings(monkeypatch):
     calls = []
-    monkeypatch.setattr(ffi.logging, 'warning', lambda *_: calls.append(1))
+    monkeypatch.setattr(ffi.logger, 'warning', lambda *_: calls.append(1))
     archive_p = ffi.write_new()
     ffi.check_int(ffi.ARCHIVE_WARN, print, [archive_p])
     assert calls == [1]
