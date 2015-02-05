@@ -119,6 +119,8 @@ ffi('entry_pathname_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_sourcepath', [c_archive_entry_p], c_char_p)
 ffi('entry_size', [c_archive_entry_p], c_longlong)
 ffi('entry_size_is_set', [c_archive_entry_p], c_int)
+ffi('entry_mode', [c_archive_entry_p], c_int)
+ffi('entry_strmode', [c_archive_entry_p], c_char_p)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 
