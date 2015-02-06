@@ -65,3 +65,11 @@ class ArchiveEntry(object):
     def size(self):
         if ffi.entry_size_is_set(self._entry_p):
             return ffi.entry_size(self._entry_p)
+
+    @property
+    def mode(self):
+        return ffi.entry_mode(self._entry_p)
+
+    @property
+    def strmode(self):
+        return ffi.entry_strmode(self._entry_p)
