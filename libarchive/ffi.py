@@ -7,18 +7,19 @@ from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
     c_char_p, c_int, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
-    pythonapi, CFUNCTYPE, POINTER,
+    CFUNCTYPE, POINTER,
 )
 import ctypes
 import ctypes.util
 import logging
+import mmap
 
 from .exception import ArchiveError
 
 
 logger = logging.getLogger('libarchive')
 
-page_size = pythonapi.getpagesize()
+page_size = mmap.PAGESIZE
 
 _LIB_FILEPATH = ctypes.util.find_library('libarchive') or 'libarchive.so'
 libarchive = ctypes.cdll.LoadLibrary(_LIB_FILEPATH)
