@@ -1,0 +1,14 @@
+language: python
+python:
+  - "2.7"
+  - "3.4"
+branches:
+  only:
+    - master
+before_install: sudo apt-get install -y libarchive12
+install: pip install -r requirements_tests.txt
+script:
+  - py.test --cov libarchive ./tests
+  - flake8 libarchive tests
+notifications:
+  email: false
