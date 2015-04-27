@@ -10,9 +10,10 @@ from ctypes import (
     CFUNCTYPE, POINTER,
 )
 import ctypes
-import ctypes.util
+from ctypes.util import find_library
 import logging
 import mmap
+import os
 
 from .exception import ArchiveError
 
@@ -21,8 +22,8 @@ logger = logging.getLogger('libarchive')
 
 page_size = mmap.PAGESIZE
 
-_LIB_FILEPATH = ctypes.util.find_library('archive') or 'libarchive.so'
-libarchive = ctypes.cdll.LoadLibrary(_LIB_FILEPATH)
+libarchive_path = os.environ.get('LIBARCHIVE') or find_library('archive')
+libarchive = ctypes.cdll.LoadLibrary(libarchive_path)
 
 
 # Constants
