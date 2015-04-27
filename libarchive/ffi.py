@@ -21,7 +21,7 @@ logger = logging.getLogger('libarchive')
 
 page_size = mmap.PAGESIZE
 
-_LIB_FILEPATH = ctypes.util.find_library('libarchive') or 'libarchive.so'
+_LIB_FILEPATH = ctypes.util.find_library('archive') or 'libarchive.so'
 libarchive = ctypes.cdll.LoadLibrary(_LIB_FILEPATH)
 
 
