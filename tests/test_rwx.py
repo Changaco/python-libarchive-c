@@ -42,7 +42,7 @@ def test_fd(tmpdir):
     tree = treestat('libarchive')
 
     # Create an archive of our libarchive/ directory
-    with libarchive.fd_writer(fd, 'v7tar', 'bzip2') as archive:
+    with libarchive.fd_writer(fd, 'gnutar', 'bzip2') as archive:
         archive.add_files('libarchive/')
 
     # Read the archive and check that the data is correct
