@@ -44,8 +44,32 @@ class ArchiveEntry(object):
             yield buf.raw[0:r]
 
     @property
+    def isblk(self):
+        return self.filetype & 0o170000 == 0o060000
+
+    @property
+    def ischr(self):
+        return self.filetype & 0o170000 == 0o020000
+
+    @property
     def isdir(self):
-        return bool(self.filetype & ffi.AE_IFDIR)
+        return self.filetype & 0o170000 == 0o040000
+
+    @property
+    def isfifo(self):
+        return self.filetype & 0o170000 == 0o010000
+
+    @property
+    def islnk(self):
+        return self.filetype & 0o170000 == 0o120000
+
+    @property
+    def isreg(self):
+        return self.filetype & 0o170000 == 0o100000
+
+    @property
+    def issock(self):
+        return self.filetype & 0o170000 == 0o140000
 
     @property
     def mtime(self):

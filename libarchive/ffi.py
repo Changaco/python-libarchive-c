@@ -35,15 +35,6 @@ ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
 
-AE_IFMT = 0o170000
-AE_IFREG = 0o100000
-AE_IFLNK = 0o120000
-AE_IFSOCK = 0o140000
-AE_IFCHR = 0o020000
-AE_IFBLK = 0o060000
-AE_IFDIR = 0o040000
-AE_IFIFO = 0o010000
-
 
 # Callback types
 
