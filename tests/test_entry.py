@@ -19,4 +19,11 @@ def test_entry_properties():
     with memory_reader(buf) as archive:
         for entry in archive:
             assert entry.mode == stat('README.rst')[0]
+            assert not entry.isblk
+            assert not entry.ischr
+            assert not entry.isdir
+            assert not entry.isfifo
+            assert not entry.islnk
+            assert entry.isreg
+            assert not entry.issock
             assert b'rw' in entry.strmode
