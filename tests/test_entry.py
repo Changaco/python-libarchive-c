@@ -5,9 +5,12 @@
 
 from __future__ import division, print_function, unicode_literals
 
+from os import path
 from os import stat
+from contextlib import closing
+import tarfile
 
-from libarchive import memory_reader, memory_writer
+from libarchive import memory_reader, memory_writer, file_reader
 
 
 def test_entry_properties():
@@ -27,3 +30,84 @@ def test_entry_properties():
             assert entry.isreg
             assert not entry.issock
             assert b'rw' in entry.strmode
+
+
+def test_check_archiveentry_against_tarfile_tarinfo():
+    test_data = path.join(path.dirname(__file__), 'data')
+    test_file = path.join(test_data, 'special.tar')
+    expected = list(get_tarinfos(test_file))
+    result = list(get_entries(test_file))
+    for i, e in enumerate(expected):
+        assert e == result[i]
+    assert len(expected) == len(result)
+
+
+def test_check_archiveentry_against_tarfile_tarinfo_relative():
+    test_data = path.join(path.dirname(__file__), 'data')
+    test_file = path.join(test_data, 'tar_relative.tar')
+    expected = list(get_tarinfos(test_file))
+    result = list(get_entries(test_file))
+    for i, e in enumerate(expected):
+        assert e == result[i]
+    assert len(expected) == len(result)
+
+
+def get_entries(location):
+    """
+    Using the archive file at `location`, return an iterable of name->value
+    mappings for each libarchive,ArchiveEntry objects essential attributes.
+    """
+    with file_reader(location) as arch:
+        for entry in arch:
+            # libarchive introduces prefixes such as h prefix for
+            # hardlinks tarfile does not, so we ignore the first char
+            mode = entry.strmode[1:]
+            yield {
+                u'path': entry.pathname,
+                u'mtime': entry.mtime,
+                u'size': long(entry.size),
+                u'mode': mode,
+                u'isreg': entry.isreg,
+                u'isdir': entry.isdir,
+                u'islnk': entry.islnk,
+                u'issym': entry.issym,
+                u'linkpath': unicode(entry.linkpath or ''),
+                u'isblk': entry.isblk,
+                u'ischr': entry.ischr,
+                u'isfifo': entry.isfifo,
+                u'isdev': entry.isdev,
+            }
+
+
+def get_tarinfos(location):
+    """
+    Using the tar archive file at `location`, return an iterable of
+    name->value mappings for each tarfile.TarInfo objects essential
+    attributes.
+    """
+    with closing(tarfile.open(location)) as tar:
+        while True:
+            tinfo = tar.next()
+            if not tinfo:
+                break
+            path = tinfo.path or ''
+            if tinfo.isdir() and not tinfo.path.endswith('/'):
+                path += '/'
+            # libarchive introduces prefixes such as h prefix for
+            # hardlinks tarfile does not, so we ignore the first char
+            mode = tarfile.filemode(tinfo.mode)[1:]
+            yield {
+                u'path': unicode(path),
+                u'mtime': tinfo.mtime,
+                u'size': long(tinfo.size),
+                u'mode': mode,
+                u'isreg': tinfo.isreg(),
+                u'isdir': tinfo.isdir(),
+                u'islnk': tinfo.islnk(),
+                u'issym': tinfo.issym(),
+                u'linkpath': unicode(tinfo.linkpath or ''),
+                u'isblk': tinfo.isblk(),
+                u'ischr': tinfo.ischr(),
+                u'isfifo': tinfo.isfifo(),
+                u'isdev': tinfo.isdev(),
+            }
