@@ -61,15 +61,34 @@ class ArchiveEntry(object):
 
     @property
     def islnk(self):
+        return True if ffi.entry_hardlink_w(self._entry_p) else False
+
+    @property
+    def issym(self):
         return self.filetype & 0o170000 == 0o120000
+
+    @property
+    def linkpath(self):
+        if self.islnk:
+            return ffi.entry_hardlink_w(self._entry_p)
+        if self.issym:
+            return ffi.entry_symlink_w(self._entry_p)
 
     @property
     def isreg(self):
         return self.filetype & 0o170000 == 0o100000
 
     @property
+    def isfile(self):
+        return self.isreg
+
+    @property
     def issock(self):
         return self.filetype & 0o170000 == 0o140000
+
+    @property
+    def isdev(self):
+        return self.ischr or self.isblk or self.isfifo or self.issock
 
     @property
     def mtime(self):
