@@ -27,8 +27,12 @@ def test_entry_properties():
             assert not entry.isdir
             assert not entry.isfifo
             assert not entry.islnk
+            assert not entry.issym
+            assert not entry.linkpath
             assert entry.isreg
+            assert entry.isfile
             assert not entry.issock
+            assert not entry.isdev
             assert b'rw' in entry.strmode
 
 
@@ -61,7 +65,7 @@ def get_entries(location):
         for entry in arch:
             # libarchive introduces prefixes such as h prefix for
             # hardlinks: tarfile does not, so we ignore the first char
-            mode = entry.strmode[1:]
+            mode = entry.strmode[1:].decode('ascii')
             yield {
                 u'path': entry.pathname,
                 u'mtime': entry.mtime,
