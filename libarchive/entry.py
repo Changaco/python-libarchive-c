@@ -61,7 +61,7 @@ class ArchiveEntry(object):
 
     @property
     def islnk(self):
-        return True if ffi.entry_hardlink_w(self._entry_p) else False
+        return bool(ffi.entry_hardlink_w(self._entry_p))
 
     @property
     def issym(self):
