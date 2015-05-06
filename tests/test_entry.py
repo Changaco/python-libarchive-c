@@ -60,18 +60,18 @@ def get_entries(location):
     with file_reader(location) as arch:
         for entry in arch:
             # libarchive introduces prefixes such as h prefix for
-            # hardlinks tarfile does not, so we ignore the first char
+            # hardlinks: tarfile does not, so we ignore the first char
             mode = entry.strmode[1:]
             yield {
                 u'path': entry.pathname,
                 u'mtime': entry.mtime,
-                u'size': long(entry.size),
+                u'size': entry.size,
                 u'mode': mode,
                 u'isreg': entry.isreg,
                 u'isdir': entry.isdir,
                 u'islnk': entry.islnk,
                 u'issym': entry.issym,
-                u'linkpath': unicode(entry.linkpath or ''),
+                u'linkpath': entry.linkpath or '',
                 u'isblk': entry.isblk,
                 u'ischr': entry.ischr,
                 u'isfifo': entry.isfifo,
@@ -94,12 +94,12 @@ def get_tarinfos(location):
             if tinfo.isdir() and not tinfo.path.endswith('/'):
                 path += '/'
             # libarchive introduces prefixes such as h prefix for
-            # hardlinks tarfile does not, so we ignore the first char
+            # hardlinks: tarfile does not, so we ignore the first char
             mode = tarfile.filemode(tinfo.mode)[1:]
             yield {
                 u'path': path,
                 u'mtime': tinfo.mtime,
-                u'size': long(tinfo.size),
+                u'size': tinfo.size,
                 u'mode': mode,
                 u'isreg': tinfo.isreg(),
                 u'isdir': tinfo.isdir(),
