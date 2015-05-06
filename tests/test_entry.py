@@ -97,7 +97,7 @@ def get_tarinfos(location):
             # hardlinks tarfile does not, so we ignore the first char
             mode = tarfile.filemode(tinfo.mode)[1:]
             yield {
-                u'path': unicode(path),
+                u'path': path,
                 u'mtime': tinfo.mtime,
                 u'size': long(tinfo.size),
                 u'mode': mode,
@@ -105,7 +105,7 @@ def get_tarinfos(location):
                 u'isdir': tinfo.isdir(),
                 u'islnk': tinfo.islnk(),
                 u'issym': tinfo.issym(),
-                u'linkpath': unicode(tinfo.linkpath or ''),
+                u'linkpath': tinfo.linkpath or '',
                 u'isblk': tinfo.isblk(),
                 u'ischr': tinfo.ischr(),
                 u'isfifo': tinfo.isfifo(),
