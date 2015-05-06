@@ -5,12 +5,11 @@
 
 from __future__ import division, print_function, unicode_literals
 
-from os import path
-from os import stat
 from contextlib import closing
+from os import path, stat
 import tarfile
 
-from libarchive import memory_reader, memory_writer, file_reader
+from libarchive import file_reader, memory_reader, memory_writer
 
 
 def test_entry_properties():
@@ -67,19 +66,19 @@ def get_entries(location):
             # hardlinks: tarfile does not, so we ignore the first char
             mode = entry.strmode[1:].decode('ascii')
             yield {
-                u'path': entry.pathname,
-                u'mtime': entry.mtime,
-                u'size': entry.size,
-                u'mode': mode,
-                u'isreg': entry.isreg,
-                u'isdir': entry.isdir,
-                u'islnk': entry.islnk,
-                u'issym': entry.issym,
-                u'linkpath': entry.linkpath or '',
-                u'isblk': entry.isblk,
-                u'ischr': entry.ischr,
-                u'isfifo': entry.isfifo,
-                u'isdev': entry.isdev,
+                'path': entry.pathname,
+                'mtime': entry.mtime,
+                'size': entry.size,
+                'mode': mode,
+                'isreg': entry.isreg,
+                'isdir': entry.isdir,
+                'islnk': entry.islnk,
+                'issym': entry.issym,
+                'linkpath': entry.linkpath or '',
+                'isblk': entry.isblk,
+                'ischr': entry.ischr,
+                'isfifo': entry.isfifo,
+                'isdev': entry.isdev,
             }
 
 
@@ -101,17 +100,17 @@ def get_tarinfos(location):
             # hardlinks: tarfile does not, so we ignore the first char
             mode = tarfile.filemode(tinfo.mode)[1:]
             yield {
-                u'path': path,
-                u'mtime': tinfo.mtime,
-                u'size': tinfo.size,
-                u'mode': mode,
-                u'isreg': tinfo.isreg(),
-                u'isdir': tinfo.isdir(),
-                u'islnk': tinfo.islnk(),
-                u'issym': tinfo.issym(),
-                u'linkpath': tinfo.linkpath or '',
-                u'isblk': tinfo.isblk(),
-                u'ischr': tinfo.ischr(),
-                u'isfifo': tinfo.isfifo(),
-                u'isdev': tinfo.isdev(),
+                'path': path,
+                'mtime': tinfo.mtime,
+                'size': tinfo.size,
+                'mode': mode,
+                'isreg': tinfo.isreg(),
+                'isdir': tinfo.isdir(),
+                'islnk': tinfo.islnk(),
+                'issym': tinfo.issym(),
+                'linkpath': tinfo.linkpath or '',
+                'isblk': tinfo.isblk(),
+                'ischr': tinfo.ischr(),
+                'isfifo': tinfo.isfifo(),
+                'isdev': tinfo.isdev(),
             }
