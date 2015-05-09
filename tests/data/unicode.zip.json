@@ -1,0 +1,32 @@
+[
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1268678396, 
+    "path": "a/", 
+    "size": 0, 
+    "isdir": true, 
+    "linkpath": "", 
+    "isblk": false, 
+    "isreg": false, 
+    "isfifo": false, 
+    "mode": "rwxr-xr-x", 
+    "islnk": false, 
+    "ischr": false
+  }, 
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1268678259, 
+    "path": "a/gr\u00fcn.png", 
+    "size": 362, 
+    "isdir": false, 
+    "linkpath": "", 
+    "isblk": false, 
+    "isreg": true, 
+    "isfifo": false, 
+    "mode": "rw-r--r--", 
+    "islnk": false, 
+    "ischr": false
+  }
+]
