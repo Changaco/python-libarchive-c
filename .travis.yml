@@ -10,7 +10,7 @@ env:
 before_install:
   - sudo apt-get update -qq
   - sh -c "if [ '$LIBARCHIVE_VER' = 'default' ]; then sudo apt-get install -y libarchive12; fi"
-  - sh -c "if [ '$LIBARCHIVE_VER' = 'vanilla' ]; then sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev;wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz;tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install; fi"
+  - sh -c "if [ '$LIBARCHIVE_VER' = 'vanilla' ]; then sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev; wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz;tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install; fi"
 
 branches:
   only:
