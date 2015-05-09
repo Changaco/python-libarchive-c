@@ -5,7 +5,7 @@ python:
 branches:
   only:
     - master
-before_install: sudo apt-get install -y libarchive12
+before_install: sudo apt-get install -y libarchive13
 install: pip install -r requirements_tests.txt
 script:
   - py.test -s -vv --cov libarchive ./tests
