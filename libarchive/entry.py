@@ -67,12 +67,13 @@ class ArchiveEntry(object):
     def issym(self):
         return self.filetype & 0o170000 == 0o120000
 
-    @property
-    def linkpath(self):
-        if self.islnk:
-            return ffi.entry_hardlink_w(self._entry_p)
-        if self.issym:
-            return ffi.entry_symlink_w(self._entry_p)
+    def _linkpath(self):
+        return (ffi.entry_symlink_w(self._entry_p)
+                or ffi.entry_hardlink_w(self._entry_p))
+ 
+    # aliases to get the same api as tarfile
+    linkpath = property(_linkpath)
+    linkname = property(_linkpath)
 
     @property
     def isreg(self):
@@ -94,15 +95,18 @@ class ArchiveEntry(object):
     def mtime(self):
         return ffi.entry_mtime(self._entry_p)
 
-    @property
-    def pathname(self):
+    def _getpathname(self):
         return ffi.entry_pathname_w(self._entry_p)
 
-    @pathname.setter
-    def pathname(self, value):
+    def _setpathname(self, value):
         if not isinstance(value, bytes):
             value = value.encode('utf8')
         ffi.entry_update_pathname_utf8(self._entry_p, c_char_p(value))
+
+    pathname = property(_getpathname, _setpathname)
+    # aliases to get the same api as tarfile
+    path = property(_getpathname, _setpathname)
+    name = property(_getpathname, _setpathname)
 
     @property
     def size(self):
