@@ -2,13 +2,25 @@ language: python
 python:
   - "2.7"
   - "3.4"
+
+env:
+  - LIBARCHIVE_VER=default
+  - LIBARCHIVE_VER=vanilla
+
+before_install:
+  - sudo apt-get update -qq
+  - sh -c "if [ '$LIBARCHIVE_VER' = 'default' ]; then sudo apt-get install -y libarchive12; fi"
+  - sh -c "if [ '$LIBARCHIVE_VER' = 'vanilla' ]; then sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev;wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz;tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install; fi"
+
 branches:
   only:
     - master
-before_install: sudo apt-get install -y libarchive13
+
 install: pip install -r requirements_tests.txt
+
 script:
   - py.test -s -vv --cov libarchive ./tests
   - flake8 libarchive tests
+
 notifications:
   email: false
