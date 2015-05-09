@@ -70,7 +70,7 @@ class ArchiveEntry(object):
     def _linkpath(self):
         return (ffi.entry_symlink_w(self._entry_p)
                 or ffi.entry_hardlink_w(self._entry_p))
- 
+
     # aliases to get the same api as tarfile
     linkpath = property(_linkpath)
     linkname = property(_linkpath)
