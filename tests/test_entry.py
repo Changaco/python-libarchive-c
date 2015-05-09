@@ -28,12 +28,14 @@ def test_entry_properties():
             assert not entry.islnk
             assert not entry.issym
             assert not entry.linkpath
+            assert entry.linkpath == entry.linkname
             assert entry.isreg
             assert entry.isfile
             assert not entry.issock
             assert not entry.isdev
             assert b'rw' in entry.strmode
-
+            assert entry.pathname == entry.path
+            assert entry.pathname == entry.name
 
 def test_check_archiveentry_against_tarfile_tarinfo():
     test_data = path.join(path.dirname(__file__), 'data')
