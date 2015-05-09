@@ -6,10 +6,14 @@
 from __future__ import division, print_function, unicode_literals
 
 from contextlib import closing
+import json
 from os import path, stat
 import tarfile
 
 from libarchive import file_reader, memory_reader, memory_writer
+
+
+test_data = path.join(path.dirname(__file__), 'data')
 
 
 def test_entry_properties():
@@ -37,8 +41,8 @@ def test_entry_properties():
             assert entry.pathname == entry.path
             assert entry.pathname == entry.name
 
+
 def test_check_archiveentry_against_tarfile_tarinfo():
-    test_data = path.join(path.dirname(__file__), 'data')
     test_file = path.join(test_data, 'special.tar')
     expected = list(get_tarinfos(test_file))
     result = list(get_entries(test_file))
@@ -48,7 +52,6 @@ def test_check_archiveentry_against_tarfile_tarinfo():
 
 
 def test_check_archiveentry_against_tarfile_tarinfo_relative():
-    test_data = path.join(path.dirname(__file__), 'data')
     test_file = path.join(test_data, 'tar_relative.tar')
     expected = list(get_tarinfos(test_file))
     result = list(get_entries(test_file))
@@ -57,10 +60,18 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
     assert len(expected) == len(result)
 
 
+def test_check_archiveentry_against_tarfile_tarinfo_using_python_testtar():
+    test_file = path.join(test_data, 'testtar.tar')
+    result = list(get_entries(test_file))
+    with open(path.join(test_data, 'testtar.tar.json')) as ex:
+        expected = json.load(ex)
+    assert expected == result
+
+
 def get_entries(location):
     """
     Using the archive file at `location`, return an iterable of name->value
-    mappings for each libarchive,ArchiveEntry objects essential attributes.
+    mappings for each libarchive.ArchiveEntry objects essential attributes.
     """
     with file_reader(location) as arch:
         for entry in arch:
