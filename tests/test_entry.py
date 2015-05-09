@@ -60,10 +60,34 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
     assert len(expected) == len(result)
 
 
-def test_check_archiveentry_against_tarfile_tarinfo_using_python_testtar():
+def test_check_archiveentry_using_python_testtar():
     test_file = path.join(test_data, 'testtar.tar')
     result = list(get_entries(test_file))
     with open(path.join(test_data, 'testtar.tar.json')) as ex:
+        expected = json.load(ex)
+    assert expected == result
+
+
+def test_check_archiveentry_with_unicode_and_binary_entries_tar():
+    test_file = path.join(test_data, 'unicode.tar')
+    result = list(get_entries(test_file))
+    with open(path.join(test_data, 'unicode.tar.json')) as ex:
+        expected = json.load(ex)
+    assert expected == result
+
+
+def test_check_archiveentry_with_unicode_and_binary_entries_zip():
+    test_file = path.join(test_data, 'unicode.zip')
+    result = list(get_entries(test_file))
+    with open(path.join(test_data, 'unicode.zip.json')) as ex:
+        expected = json.load(ex)
+    assert expected == result
+
+
+def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
+    test_file = path.join(test_data, 'unicode2.zip')
+    result = list(get_entries(test_file))
+    with open(path.join(test_data, 'unicode.zip2.json')) as ex:
         expected = json.load(ex)
     assert expected == result
 
