@@ -5,9 +5,10 @@
 
 from __future__ import division, print_function, unicode_literals
 
+import codecs
 from contextlib import closing
 import json
-from os import path, stat
+from os import environ, path, stat
 import tarfile
 
 from libarchive import file_reader, memory_reader, memory_writer
@@ -60,36 +61,36 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
     assert len(expected) == len(result)
 
 
-def test_check_archiveentry_using_python_testtar():
-    test_file = path.join(test_data, 'testtar.tar')
+def check_entries(test_file, regen=False):
+    expected_file = test_file + '.json'
+    environ['TZ'] = 'UTC'
     result = list(get_entries(test_file))
-    with open(path.join(test_data, 'testtar.tar.json')) as ex:
+    if regen:
+        with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
+            json.dump(result, ex, indent=2)
+    with codecs.open(expected_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
     assert expected == result
+
+
+def test_check_archiveentry_using_python_testtar():
+    test_file = path.join(test_data, 'testtar.tar')
+    check_entries(test_file, regen=False)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_tar():
     test_file = path.join(test_data, 'unicode.tar')
-    result = list(get_entries(test_file))
-    with open(path.join(test_data, 'unicode.tar.json')) as ex:
-        expected = json.load(ex)
-    assert expected == result
+    check_entries(test_file, regen=False)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
     test_file = path.join(test_data, 'unicode.zip')
-    result = list(get_entries(test_file))
-    with open(path.join(test_data, 'unicode.zip.json')) as ex:
-        expected = json.load(ex)
-    assert expected == result
+    check_entries(test_file, regen=False)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     test_file = path.join(test_data, 'unicode2.zip')
-    result = list(get_entries(test_file))
-    with open(path.join(test_data, 'unicode.zip2.json')) as ex:
-        expected = json.load(ex)
-    assert expected == result
+    check_entries(test_file, regen=False)
 
 
 def get_entries(location):
@@ -103,7 +104,7 @@ def get_entries(location):
             # hardlinks: tarfile does not, so we ignore the first char
             mode = entry.strmode[1:].decode('ascii')
             yield {
-                'path': entry.pathname,
+                'path': codecs.encode(entry.pathname, 'base64'),
                 'mtime': entry.mtime,
                 'size': entry.size,
                 'mode': mode,
@@ -111,7 +112,7 @@ def get_entries(location):
                 'isdir': entry.isdir,
                 'islnk': entry.islnk,
                 'issym': entry.issym,
-                'linkpath': entry.linkpath or '',
+                'linkpath': codecs.encode(entry.linkpath, 'base64') if entry.linkpath else '',
                 'isblk': entry.isblk,
                 'ischr': entry.ischr,
                 'isfifo': entry.isfifo,
@@ -127,27 +128,27 @@ def get_tarinfos(location):
     """
     with closing(tarfile.open(location)) as tar:
         while True:
-            tinfo = tar.next()
-            if not tinfo:
+            entry = tar.next()
+            if not entry:
                 break
-            path = tinfo.path or ''
-            if tinfo.isdir() and not tinfo.path.endswith('/'):
+            path = entry.path or ''
+            if entry.isdir() and not entry.path.endswith('/'):
                 path += '/'
             # libarchive introduces prefixes such as h prefix for
             # hardlinks: tarfile does not, so we ignore the first char
-            mode = tarfile.filemode(tinfo.mode)[1:]
+            mode = tarfile.filemode(entry.mode)[1:].decode('ascii')
             yield {
-                'path': path,
-                'mtime': tinfo.mtime,
-                'size': tinfo.size,
+                'path': codecs.encode(path, 'base64'),
+                'mtime': entry.mtime,
+                'size': entry.size,
                 'mode': mode,
-                'isreg': tinfo.isreg(),
-                'isdir': tinfo.isdir(),
-                'islnk': tinfo.islnk(),
-                'issym': tinfo.issym(),
-                'linkpath': tinfo.linkpath or '',
-                'isblk': tinfo.isblk(),
-                'ischr': tinfo.ischr(),
-                'isfifo': tinfo.isfifo(),
-                'isdev': tinfo.isdev(),
+                'isreg': entry.isreg(),
+                'isdir': entry.isdir(),
+                'islnk': entry.islnk(),
+                'issym': entry.issym(),
+                'linkpath': codecs.encode(entry.linkpath, 'base64') if entry.linkpath else '',
+                'isblk': entry.isblk(),
+                'ischr': entry.ischr(),
+                'isfifo': entry.isfifo(),
+                'isdev': entry.isdev(),
             }
