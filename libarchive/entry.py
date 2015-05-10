@@ -68,8 +68,8 @@ class ArchiveEntry(object):
         return self.filetype & 0o170000 == 0o120000
 
     def _linkpath(self):
-        return (ffi.entry_symlink_w(self._entry_p)
-                or ffi.entry_hardlink_w(self._entry_p))
+        return (ffi.entry_symlink(self._entry_p)
+                or ffi.entry_hardlink(self._entry_p))
 
     # aliases to get the same api as tarfile
     linkpath = property(_linkpath)
@@ -96,7 +96,7 @@ class ArchiveEntry(object):
         return ffi.entry_mtime(self._entry_p)
 
     def _getpathname(self):
-        return ffi.entry_pathname_w(self._entry_p)
+        return ffi.entry_pathname(self._entry_p)
 
     def _setpathname(self, value):
         if not isinstance(value, bytes):
