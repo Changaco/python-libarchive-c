@@ -63,6 +63,7 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
 
 def check_entries(test_file, regen=False):
     expected_file = test_file + '.json'
+    # needed for sane time stamp comparison
     environ['TZ'] = 'UTC'
     result = list(get_entries(test_file))
     if regen:
@@ -97,6 +98,8 @@ def get_entries(location):
     """
     Using the archive file at `location`, return an iterable of name->value
     mappings for each libarchive.ArchiveEntry objects essential attributes.
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle 
+    arbitrary binary pathdata.
     """
     with file_reader(location) as arch:
         for entry in arch:
@@ -125,6 +128,8 @@ def get_tarinfos(location):
     Using the tar archive file at `location`, return an iterable of
     name->value mappings for each tarfile.TarInfo objects essential
     attributes.
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle 
+    arbitrary binary pathdata.
     """
     with closing(tarfile.open(location)) as tar:
         while True:
