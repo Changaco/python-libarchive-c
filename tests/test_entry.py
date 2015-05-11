@@ -16,6 +16,7 @@ from libarchive import file_reader, memory_reader, memory_writer
 
 test_data = path.join(path.dirname(__file__), 'data')
 
+# flake8: noqa
 
 def test_entry_properties():
 
