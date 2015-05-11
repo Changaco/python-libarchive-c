@@ -5,6 +5,7 @@
 
 from __future__ import division, print_function, unicode_literals
 
+from base64 import b64decode, b64encode
 import codecs
 from contextlib import closing
 import json
@@ -110,7 +111,7 @@ def encode_path(arch_path):
     bytes in UTF-8 strings.
     """
     if arch_path:
-        arch_path = codecs.encode(arch_path, 'base64')
+        arch_path = b64encode(arch_path, 'base64')
         return unicode(arch_path)
     else:
         return arch_path
@@ -118,13 +119,14 @@ def encode_path(arch_path):
 
 def decode_path(arch_path):
     """
-    Return a `arch_path` bytes string decoded from a base64-encoded unicode string.
+    Return a `arch_path` bytes string decoded from a base64-encoded unicode
+    string.
     Rationale: tests expectations are stored as UTF-8 JSON yet paths can be
     arbitrary byte strings. This encoding ensures that we can safely store
     bytes in UTF-8 strings.
     """
     if arch_path:
-        arch_path = bytes(codecs.decode(arch_path, 'base64'))
+        arch_path = str(b64decode(arch_path, 'base64'))
     return arch_path
 
 
@@ -132,7 +134,7 @@ def get_entries(location, encode=False):
     """
     Using the archive file at `location`, return an iterable of name->value
     mappings for each libarchive.ArchiveEntry objects essential attributes.
-    Paths are base64-encoded because JSON is UTF-8 and cannot handle 
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle
     arbitrary binary pathdata.
     """
     with file_reader(location) as arch:
@@ -162,7 +164,7 @@ def get_tarinfos(location):
     Using the tar archive file at `location`, return an iterable of
     name->value mappings for each tarfile.TarInfo objects essential
     attributes.
-    Paths are base64-encoded because JSON is UTF-8 and cannot handle 
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle
     arbitrary binary pathdata.
     """
     with closing(tarfile.open(location)) as tar:
