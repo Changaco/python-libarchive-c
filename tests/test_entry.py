@@ -61,19 +61,6 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
     assert len(expected) == len(result)
 
 
-def check_entries(test_file, regen=False):
-    expected_file = test_file + '.json'
-    # needed for sane time stamp comparison
-    environ['TZ'] = 'UTC'
-    result = list(get_entries(test_file))
-    if regen:
-        with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
-            json.dump(result, ex, indent=2)
-    with codecs.open(expected_file, encoding='UTF-8') as ex:
-        expected = json.load(ex)
-    assert expected == result
-
-
 def test_check_archiveentry_using_python_testtar():
     test_file = path.join(test_data, 'testtar.tar')
     check_entries(test_file, regen=False)
@@ -94,7 +81,53 @@ def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     check_entries(test_file, regen=False)
 
 
-def get_entries(location):
+def check_entries(test_file, regen=False):
+    expected_file = test_file + '.json'
+    # needed for sane time stamp comparison
+    environ['TZ'] = 'UTC'
+    if regen:
+        encoded = list(get_entries(test_file, encode=True))
+        with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
+            json.dump(encoded, ex, indent=2)
+
+    result = list(get_entries(test_file, encode=False))
+
+    with codecs.open(expected_file, encoding='UTF-8') as ex:
+        expected = json.load(ex)
+        # decode encoded paths back to bytes to get meaningful test failures
+        for ex in expected:
+            ex['path'] = decode_path(ex['path'])
+            ex['linkpath'] = decode_path(ex['linkpath'])
+    assert expected == result
+
+
+def encode_path(arch_path):
+    """
+    Return the `arch_path` bytes string as a base64-encoded unicode string.
+    Rationale: tests expectations are stored as UTF-8 JSON yet paths can be
+    arbitrary byte strings. This encoding ensures that we can safely store
+    bytes in UTF-8 strings.
+    """
+    if arch_path:
+        arch_path = codecs.encode(arch_path, 'base64')
+        return unicode(arch_path)
+    else:
+        return arch_path
+
+
+def decode_path(arch_path):
+    """
+    Return a `arch_path` bytes string decoded from a base64-encoded unicode string.
+    Rationale: tests expectations are stored as UTF-8 JSON yet paths can be
+    arbitrary byte strings. This encoding ensures that we can safely store
+    bytes in UTF-8 strings.
+    """
+    if arch_path:
+        arch_path = bytes(codecs.decode(arch_path, 'base64'))
+    return arch_path
+
+
+def get_entries(location, encode=False):
     """
     Using the archive file at `location`, return an iterable of name->value
     mappings for each libarchive.ArchiveEntry objects essential attributes.
@@ -107,7 +140,7 @@ def get_entries(location):
             # hardlinks: tarfile does not, so we ignore the first char
             mode = entry.strmode[1:].decode('ascii')
             yield {
-                'path': codecs.encode(entry.pathname, 'base64'),
+                'path': encode_path(entry.pathname) if encode else entry.pathname,
                 'mtime': entry.mtime,
                 'size': entry.size,
                 'mode': mode,
@@ -115,7 +148,7 @@ def get_entries(location):
                 'isdir': entry.isdir,
                 'islnk': entry.islnk,
                 'issym': entry.issym,
-                'linkpath': codecs.encode(entry.linkpath, 'base64') if entry.linkpath else '',
+                'linkpath': encode_path(entry.linkpath) if encode else entry.linkpath,
                 'isblk': entry.isblk,
                 'ischr': entry.ischr,
                 'isfifo': entry.isfifo,
@@ -143,7 +176,7 @@ def get_tarinfos(location):
             # hardlinks: tarfile does not, so we ignore the first char
             mode = tarfile.filemode(entry.mode)[1:].decode('ascii')
             yield {
-                'path': codecs.encode(path, 'base64'),
+                'path': path,
                 'mtime': entry.mtime,
                 'size': entry.size,
                 'mode': mode,
@@ -151,7 +184,7 @@ def get_tarinfos(location):
                 'isdir': entry.isdir(),
                 'islnk': entry.islnk(),
                 'issym': entry.issym(),
-                'linkpath': codecs.encode(entry.linkpath, 'base64') if entry.linkpath else '',
+                'linkpath': entry.linkpath or None,
                 'isblk': entry.isblk(),
                 'ischr': entry.ischr(),
                 'isfifo': entry.isfifo(),
