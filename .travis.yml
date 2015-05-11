@@ -1,4 +1,10 @@
 language: python
+# language: cpp (travis osx does not have python, it needs to be built from sources)
+
+#os: 
+#  - linux 
+#  - osx
+
 python:
   - "2.7"
   - "3.4"
@@ -8,9 +14,14 @@ env:
   - LIBARCHIVE_VER=vanilla
 
 before_install:
-  - sudo apt-get update -qq
-  - sh -c "if [ '$LIBARCHIVE_VER' = 'default' ]; then sudo apt-get install -y libarchive12; fi"
-  - sh -c "if [ '$LIBARCHIVE_VER' = 'vanilla' ]; then sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev; wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz;tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install; fi"
+  - sh -c "if [ '$TRAVIS_OS_NAME' = 'linux' ]; then sudo apt-get update -qq; fi"
+  - sh -c "if [ '$TRAVIS_OS_NAME' = 'linux' ]; then sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev; fi"
+  - sh -c "if [ '$LIBARCHIVE_VER' = 'default' && '$TRAVIS_OS_NAME' = 'linux' ]; then sudo apt-get install -y libarchive12; fi"
+#  - sh -c "if [ '$TRAVIS_OS_NAME' = 'osx' ]; then brew update; fi"
+#  - sh -c "if [ '$TRAVIS_OS_NAME' = 'osx' ]; then brew tap homebrew/homebrew-dupes; fi"
+#  - sh -c "if [ '$TRAVIS_OS_NAME' = 'osx' ]; then brew brew install zlib xz bzip2 wget libiconv; fi"
+#  - sh -c "if [ '$LIBARCHIVE_VER' = 'default' && '$TRAVIS_OS_NAME' = 'osx' ]; then brew install libarchive; fi"
+  - sh -c "if [ '$LIBARCHIVE_VER' = 'vanilla' ]; then wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz;tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install; fi"
 
 branches:
   only:
