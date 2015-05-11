@@ -119,6 +119,6 @@ class ArchiveEntry(object):
 
     @property
     def strmode(self):
-        # note we strip the modebecause libarchive archive_entry_strmode
+        # note we strip the mode because archive_entry_strmode
         # returns a trailing space: strcpy(bp, "?rwxrwxrwx ");
         return ffi.entry_strmode(self._entry_p).strip()
