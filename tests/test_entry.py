@@ -5,7 +5,6 @@
 
 from __future__ import division, print_function, unicode_literals
 
-from base64 import b64decode, b64encode
 import codecs
 from contextlib import closing
 import json
@@ -13,6 +12,8 @@ from os import environ, path, stat
 import tarfile
 
 from libarchive import file_reader, memory_reader, memory_writer
+from base64 import b64decode
+from base64 import b64encode
 
 
 test_data = path.join(path.dirname(__file__), 'data')
@@ -88,17 +89,18 @@ def check_entries(test_file, regen=False):
     # needed for sane time stamp comparison
     environ['TZ'] = 'UTC'
     if regen:
-        encoded = list(get_entries(test_file, encode=True))
+        encoded = list(get_entries2(test_file, encode=True))
         with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
             json.dump(encoded, ex, indent=2)
 
-    result = list(get_entries(test_file, encode=False))
+    result = list(get_entries2(test_file, encode=False))
 
     with codecs.open(expected_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
         # decode encoded paths back to bytes to get meaningful test failures
         for ex in expected:
             ex['path'] = decode_path(ex['path'])
+            #ex['pathw'] = decode_path(ex['pathw'])
             ex['linkpath'] = decode_path(ex['linkpath'])
     assert expected == result
 
@@ -110,11 +112,7 @@ def encode_path(arch_path):
     arbitrary byte strings. This encoding ensures that we can safely store
     bytes in UTF-8 strings.
     """
-    if arch_path:
-        arch_path = b64encode(arch_path, 'base64')
-        return unicode(arch_path)
-    else:
-        return arch_path
+    return unicode(b64encode(arch_path)) if arch_path else arch_path
 
 
 def decode_path(arch_path):
@@ -125,10 +123,37 @@ def decode_path(arch_path):
     arbitrary byte strings. This encoding ensures that we can safely store
     bytes in UTF-8 strings.
     """
-    if arch_path:
-        arch_path = str(b64decode(arch_path, 'base64'))
-    return arch_path
+    return str(b64decode(arch_path)) if arch_path else arch_path
 
+
+def get_entries2(location, encode=False):
+    """
+    Using the archive file at `location`, return an iterable of name->value
+    mappings for each libarchive.ArchiveEntry objects essential attributes.
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle
+    arbitrary binary pathdata.
+    """
+    with file_reader(location) as arch:
+        for entry in arch:
+            # libarchive introduces prefixes such as h prefix for
+            # hardlinks: tarfile does not, so we ignore the first char
+            mode = entry.strmode[1:].decode('ascii')
+            yield {
+                'path': encode_path(entry.pathname) if encode else entry.pathname,
+                'pathw': entry.pathw,
+                'mtime': entry.mtime,
+                'size': entry.size,
+                'mode': mode,
+                'isreg': entry.isreg,
+                'isdir': entry.isdir,
+                'islnk': entry.islnk,
+                'issym': entry.issym,
+                'linkpath': encode_path(entry.linkpath) if encode else entry.linkpath,
+                'isblk': entry.isblk,
+                'ischr': entry.ischr,
+                'isfifo': entry.isfifo,
+                'isdev': entry.isdev,
+            }
 
 def get_entries(location, encode=False):
     """
@@ -157,7 +182,6 @@ def get_entries(location, encode=False):
                 'isfifo': entry.isfifo,
                 'isdev': entry.isdev,
             }
-
 
 def get_tarinfos(location):
     """

@@ -95,9 +95,12 @@ class ArchiveEntry(object):
     def mtime(self):
         return ffi.entry_mtime(self._entry_p)
 
+    @property
+    def pathw(self):
+        return ffi.entry_pathname_w(self._entry_p)
+
     def _getpathname(self):
-        return (ffi.entry_pathname_w(self._entry_p) 
-                or ffi.entry_pathname(self._entry_p))
+        return ffi.entry_pathname(self._entry_p)
 
     def _setpathname(self, value):
         if not isinstance(value, bytes):
