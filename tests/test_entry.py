@@ -106,7 +106,7 @@ else:
     raise Exception('Unknown OS/platform')
 
 
-def check_entries(test_file, expected_file, regen=True):
+def check_entries(test_file, expected_file, regen=False):
     # needed for sane time stamp comparison
     environ['TZ'] = 'UTC'
     if regen:
