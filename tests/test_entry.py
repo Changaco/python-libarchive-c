@@ -65,34 +65,37 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
 
 def test_check_archiveentry_using_python_testtar():
     test_file = path.join(test_data, 'testtar.tar')
-    check_entries(test_file, regen=False)
+    expected_file = test_file + '.json'
+    check_entries(test_file, expected_file)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_tar():
     test_file = path.join(test_data, 'unicode.tar')
-    check_entries(test_file, regen=False)
+    expected_file = test_file + '.json'
+    check_entries(test_file, expected_file)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
     test_file = path.join(test_data, 'unicode.zip')
-    check_entries(test_file, regen=False)
+    expected_file = test_file + '.json'
+    check_entries(test_file, expected_file)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     test_file = path.join(test_data, 'unicode2.zip')
-    check_entries(test_file, regen=False)
-
-
-def check_entries(test_file, regen=False):
     expected_file = test_file + '.json'
+    check_entries(test_file, expected_file)
+
+
+def check_entries(test_file, expected_file, regen=True):
     # needed for sane time stamp comparison
     environ['TZ'] = 'UTC'
     if regen:
-        encoded = list(get_entries2(test_file, encode=True))
+        encoded = list(get_entries(test_file, encode=True))
         with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
             json.dump(encoded, ex, indent=2)
 
-    result = list(get_entries2(test_file, encode=False))
+    result = list(get_entries(test_file, encode=False))
 
     with codecs.open(expected_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
@@ -124,35 +127,6 @@ def decode_path(arch_path):
     """
     return str(b64decode(arch_path)) if arch_path else arch_path
 
-
-def get_entries2(location, encode=False):
-    """
-    Using the archive file at `location`, return an iterable of name->value
-    mappings for each libarchive.ArchiveEntry objects essential attributes.
-    Paths are base64-encoded because JSON is UTF-8 and cannot handle
-    arbitrary binary pathdata.
-    """
-    with file_reader(location) as arch:
-        for entry in arch:
-            # libarchive introduces prefixes such as h prefix for
-            # hardlinks: tarfile does not, so we ignore the first char
-            mode = entry.strmode[1:].decode('ascii')
-            yield {
-                'path': encode_path(entry.pathname) if encode else entry.pathname,
-                'pathw': entry.pathw,
-                'mtime': entry.mtime,
-                'size': entry.size,
-                'mode': mode,
-                'isreg': entry.isreg,
-                'isdir': entry.isdir,
-                'islnk': entry.islnk,
-                'issym': entry.issym,
-                'linkpath': encode_path(entry.linkpath) if encode else entry.linkpath,
-                'isblk': entry.isblk,
-                'ischr': entry.ischr,
-                'isfifo': entry.isfifo,
-                'isdev': entry.isdev,
-            }
 
 def get_entries(location, encode=False):
     """

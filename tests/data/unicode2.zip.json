@@ -4,15 +4,14 @@
     "isdev": false, 
     "mtime": 1381752672, 
     "path": "YS8=", 
-    "linkpath": null, 
+    "size": 0, 
     "isdir": true, 
-    "pathw": "a/", 
+    "linkpath": null, 
     "isblk": false, 
     "isreg": false, 
     "isfifo": false, 
     "mode": "rwxrwxrwx", 
     "islnk": false, 
-    "size": 0, 
     "ischr": false
   }, 
   {
@@ -20,15 +19,14 @@
     "isdev": false, 
     "mtime": 1268681860, 
     "path": "YS9ncnXMiG4ucG5n", 
-    "linkpath": null, 
+    "size": 362, 
     "isdir": false, 
-    "pathw": "a/gru\u00cc\u0088n.png", 
+    "linkpath": null, 
     "isblk": false, 
     "isreg": true, 
     "isfifo": false, 
     "mode": "rw-rw-rw-", 
     "islnk": false, 
-    "size": 362, 
     "ischr": false
   }
 ]

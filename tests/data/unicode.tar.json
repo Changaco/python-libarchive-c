@@ -4,15 +4,14 @@
     "isdev": false, 
     "mtime": 1319027321, 
     "path": "Mjg1OS8=", 
-    "linkpath": null, 
+    "size": 0, 
     "isdir": true, 
-    "pathw": "2859/", 
+    "linkpath": null, 
     "isblk": false, 
     "isreg": false, 
     "isfifo": false, 
     "mode": "rwx------", 
     "islnk": false, 
-    "size": 0, 
     "ischr": false
   }, 
   {
@@ -20,15 +19,14 @@
     "isdev": false, 
     "mtime": 1319027194, 
     "path": "Mjg1OS9Db3B5IG9mIGjDoG56w6wtc29tZWZpbGUudHh0", 
-    "linkpath": null, 
+    "size": 0, 
     "isdir": false, 
-    "pathw": "2859/Copy of h\u00c3\u00a0nz\u00c3\u00ac-somefile.txt", 
+    "linkpath": null, 
     "isblk": false, 
     "isreg": true, 
     "isfifo": false, 
     "mode": "rwx------", 
     "islnk": false, 
-    "size": 0, 
     "ischr": false
   }, 
   {
@@ -36,15 +34,14 @@
     "isdev": false, 
     "mtime": 1319027194, 
     "path": "Mjg1OS9ow6BuesOsPy1zb21lZmlsZS50eHQg", 
-    "linkpath": null, 
+    "size": 0, 
     "isdir": false, 
-    "pathw": "2859/h\u00c3\u00a0nz\u00c3\u00ac?-somefile.txt ", 
+    "linkpath": null, 
     "isblk": false, 
     "isreg": true, 
     "isfifo": false, 
     "mode": "rwx------", 
     "islnk": false, 
-    "size": 0, 
     "ischr": false
   }
 ]

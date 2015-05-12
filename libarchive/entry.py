@@ -95,10 +95,6 @@ class ArchiveEntry(object):
     def mtime(self):
         return ffi.entry_mtime(self._entry_p)
 
-    @property
-    def pathw(self):
-        return ffi.entry_pathname_w(self._entry_p)
-
     def _getpathname(self):
         return ffi.entry_pathname(self._entry_p)
 
@@ -123,6 +119,6 @@ class ArchiveEntry(object):
 
     @property
     def strmode(self):
-        # note we strip the modebecause libarchive archive_entry_strmode
+        # note we strip the mode because archive_entry_strmode
         # returns a trailing space: strcpy(bp, "?rwxrwxrwx ");
         return ffi.entry_strmode(self._entry_p).strip()
