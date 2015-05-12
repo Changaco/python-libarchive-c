@@ -5,6 +5,9 @@
 
 from __future__ import division, print_function, unicode_literals
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 from ctypes import (
     c_char_p, c_int, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
     CFUNCTYPE, POINTER,
