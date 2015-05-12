@@ -5,6 +5,7 @@
 
 from __future__ import division, print_function, unicode_literals
 
+from base64 import b64encode, b64decode
 import codecs
 from contextlib import closing
 import json
@@ -12,8 +13,6 @@ from os import environ, path, stat
 import tarfile
 
 from libarchive import file_reader, memory_reader, memory_writer
-from base64 import b64decode
-from base64 import b64encode
 
 
 test_data = path.join(path.dirname(__file__), 'data')
