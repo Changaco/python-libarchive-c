@@ -10,7 +10,7 @@
     "isblk": false, 
     "isreg": false, 
     "isfifo": false, 
-    "mode": "rwxrwxrwx", 
+    "mode": "rwxrwxr-x", 
     "islnk": false, 
     "ischr": false
   }, 
@@ -25,7 +25,7 @@
     "isblk": false, 
     "isreg": true, 
     "isfifo": false, 
-    "mode": "rw-rw-rw-", 
+    "mode": "rw-rw-r--", 
     "islnk": false, 
     "ischr": false
   }
