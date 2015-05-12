@@ -171,7 +171,7 @@ def get_entries(location, encode=False):
                 'isdir': entry.isdir,
                 'islnk': entry.islnk,
                 'issym': entry.issym,
-                'lnkpth': lnkpth,
+                'linkpath': lnkpth,
                 'isblk': entry.isblk,
                 'ischr': entry.ischr,
                 'isfifo': entry.isfifo,
