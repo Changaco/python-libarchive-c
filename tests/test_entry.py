@@ -68,7 +68,7 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
 
 def test_check_archiveentry_using_python_testtar():
     test_file = path.join(test_data, 'testtar.tar')
-    expected_file = test_file + '.json' + os if os == 'win' else ''
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
 
@@ -80,13 +80,13 @@ def test_check_archiveentry_with_unicode_and_binary_entries_tar():
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
     test_file = path.join(test_data, 'unicode.zip')
-    expected_file = test_file + '.json' + os if os == 'win' else ''
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     test_file = path.join(test_data, 'unicode2.zip')
-    expected_file = test_file + '.json' + os if os == 'win' else ''
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
