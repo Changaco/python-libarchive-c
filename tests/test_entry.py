@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This file is part of a program licensed under the terms of the GNU Lesser
 # General Public License version 2 (or at your option any later version)
 # as published by the Free Software Foundation: http://www.gnu.org/licenses/
@@ -10,10 +11,13 @@ import codecs
 from contextlib import closing
 import json
 from os import environ, path, stat
+import sys
 import tarfile
 
 from libarchive import file_reader, memory_reader, memory_writer
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
 
 test_data = path.join(path.dirname(__file__), 'data')
 
@@ -64,7 +68,7 @@ def test_check_archiveentry_against_tarfile_tarinfo_relative():
 
 def test_check_archiveentry_using_python_testtar():
     test_file = path.join(test_data, 'testtar.tar')
-    expected_file = test_file + '.json'
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
 
@@ -76,14 +80,31 @@ def test_check_archiveentry_with_unicode_and_binary_entries_tar():
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
     test_file = path.join(test_data, 'unicode.zip')
-    expected_file = test_file + '.json'
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     test_file = path.join(test_data, 'unicode2.zip')
-    expected_file = test_file + '.json'
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
+
+
+def test_check_archiveentry_with_unicode_entries_and_name_zip():
+    test_file = path.join(test_data, '\ud504\ub85c\uadf8\ub7a8.zip')
+    expected_file = test_file + '.json' + (os if os == 'win' else '')
+    check_entries(test_file, expected_file)
+
+
+sys_platform = str(sys.platform).lower()
+if 'linux' in sys_platform:
+    os = 'linux'
+elif'win32' in sys_platform:
+    os = 'win'
+elif 'darwin' in sys_platform:
+    os = 'mac'
+else:
+    raise Exception('Unknown OS/platform')
 
 
 def check_entries(test_file, expected_file, regen=False):
