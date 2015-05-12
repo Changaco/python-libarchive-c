@@ -89,6 +89,7 @@ def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     expected_file = test_file + '.json' + (os if os == 'win' else '')
     check_entries(test_file, expected_file)
 
+
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
     test_file = path.join(test_data, '\ud504\ub85c\uadf8\ub7a8.zip')
     expected_file = test_file + '.json' + (os if os == 'win' else '')
@@ -121,7 +122,7 @@ def check_entries(test_file, expected_file, regen=False):
         # decode encoded paths back to bytes to get meaningful test failures
         for ex in expected:
             ex['path'] = decode_path(ex['path'])
-            #ex['pathw'] = decode_path(ex['pathw'])
+
             ex['linkpath'] = decode_path(ex['linkpath'])
     assert expected == result
 
@@ -159,8 +160,10 @@ def get_entries(location, encode=False):
             # libarchive introduces prefixes such as h prefix for
             # hardlinks: tarfile does not, so we ignore the first char
             mode = entry.strmode[1:].decode('ascii')
+            path = encode_path(entry.pathname) if encode else entry.pathname
+            lnkpth = encode_path(entry.linkpath) if encode else entry.linkpath
             yield {
-                'path': encode_path(entry.pathname) if encode else entry.pathname,
+                'path': path,
                 'mtime': entry.mtime,
                 'size': entry.size,
                 'mode': mode,
@@ -168,12 +171,13 @@ def get_entries(location, encode=False):
                 'isdir': entry.isdir,
                 'islnk': entry.islnk,
                 'issym': entry.issym,
-                'linkpath': encode_path(entry.linkpath) if encode else entry.linkpath,
+                'lnkpth': lnkpth,
                 'isblk': entry.isblk,
                 'ischr': entry.ischr,
                 'isfifo': entry.isfifo,
                 'isdev': entry.isdev,
             }
+
 
 def get_tarinfos(location):
     """
