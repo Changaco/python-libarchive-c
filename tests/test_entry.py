@@ -93,7 +93,7 @@ def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
     test_file = path.join(test_data, '\ud504\ub85c\uadf8\ub7a8.zip')
     expected_file = test_file + '.json' + (os if os == 'win' else '')
-    check_entries(test_file, expected_file)
+    check_entries(test_file, expected_file, regen=False)
 
 
 sys_platform = str(sys.platform).lower()
