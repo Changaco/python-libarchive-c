@@ -1,14 +1,23 @@
 language: python
+
 python:
   - "2.7"
   - "3.4"
+
 branches:
   only:
     - master
-before_install: sudo apt-get install -y libarchive12
+
+before_install:
+  - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
+  - wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz
+  - tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install && cd ..
+
 install: pip install -r requirements_tests.txt
+
 script:
   - py.test -s -vv --cov libarchive ./tests
   - flake8 libarchive tests
+
 notifications:
   email: false
