@@ -5,6 +5,9 @@
 
 from __future__ import division, print_function, unicode_literals
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 from ctypes import (
     c_char_p, c_int, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
     CFUNCTYPE, POINTER,
@@ -108,12 +111,17 @@ ffi('entry_new', [], c_archive_entry_p, check_null)
 
 ffi('entry_filetype', [c_archive_entry_p], c_int)
 ffi('entry_mtime', [c_archive_entry_p], c_int)
+ffi('entry_pathname', [c_archive_entry_p], c_char_p)
 ffi('entry_pathname_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_sourcepath', [c_archive_entry_p], c_char_p)
 ffi('entry_size', [c_archive_entry_p], c_longlong)
 ffi('entry_size_is_set', [c_archive_entry_p], c_int)
 ffi('entry_mode', [c_archive_entry_p], c_int)
 ffi('entry_strmode', [c_archive_entry_p], c_char_p)
+ffi('entry_hardlink', [c_archive_entry_p], c_char_p)
+ffi('entry_hardlink_w', [c_archive_entry_p], c_wchar_p)
+ffi('entry_symlink', [c_archive_entry_p], c_char_p)
+ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 

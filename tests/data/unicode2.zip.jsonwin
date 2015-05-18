@@ -1,0 +1,32 @@
+[
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1381752672, 
+    "path": "YS8=", 
+    "size": 0, 
+    "isdir": true, 
+    "linkpath": null, 
+    "isblk": false, 
+    "isreg": false, 
+    "isfifo": false, 
+    "mode": "rwxrwxrwx", 
+    "islnk": false, 
+    "ischr": false
+  }, 
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1268681860, 
+    "path": "YS9ncnXMiG4ucG5n", 
+    "size": 362, 
+    "isdir": false, 
+    "linkpath": null, 
+    "isblk": false, 
+    "isreg": true, 
+    "isfifo": false, 
+    "mode": "rw-rw-rw-", 
+    "islnk": false, 
+    "ischr": false
+  }
+]

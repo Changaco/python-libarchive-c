@@ -61,29 +61,60 @@ class ArchiveEntry(object):
 
     @property
     def islnk(self):
+        return bool(ffi.entry_hardlink_w(self._entry_p))
+
+    @property
+    def issym(self):
         return self.filetype & 0o170000 == 0o120000
+
+    def _linkpath(self):
+        return (ffi.entry_symlink(self._entry_p)
+                or ffi.entry_hardlink(self._entry_p))
+
+    # aliases to get the same api as tarfile
+    linkpath = property(_linkpath)
+    linkname = property(_linkpath)
 
     @property
     def isreg(self):
         return self.filetype & 0o170000 == 0o100000
 
     @property
+    def isfile(self):
+        return self.isreg
+
+    @property
     def issock(self):
         return self.filetype & 0o170000 == 0o140000
+
+    @property
+    def isdev(self):
+        return self.ischr or self.isblk or self.isfifo or self.issock
 
     @property
     def mtime(self):
         return ffi.entry_mtime(self._entry_p)
 
-    @property
-    def pathname(self):
-        return ffi.entry_pathname_w(self._entry_p)
+    def _getpathname(self):
+        pth = ffi.entry_pathname(self._entry_p)
+        if pth:
+            return ffi.entry_pathname(self._entry_p)
+        pth = ffi.entry_pathname_w(self._entry_p)
+        if pth:
+            if isinstance(pth, unicode):
+                return pth.encode('utf-8')
+            else:
+                return pth
 
-    @pathname.setter
-    def pathname(self, value):
+    def _setpathname(self, value):
         if not isinstance(value, bytes):
             value = value.encode('utf8')
         ffi.entry_update_pathname_utf8(self._entry_p, c_char_p(value))
+
+    pathname = property(_getpathname, _setpathname)
+    # aliases to get the same api as tarfile
+    path = property(_getpathname, _setpathname)
+    name = property(_getpathname, _setpathname)
 
     @property
     def size(self):
@@ -96,4 +127,6 @@ class ArchiveEntry(object):
 
     @property
     def strmode(self):
-        return ffi.entry_strmode(self._entry_p)
+        # note we strip the mode because archive_entry_strmode
+        # returns a trailing space: strcpy(bp, "?rwxrwxrwx ");
+        return ffi.entry_strmode(self._entry_p).strip()
