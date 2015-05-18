@@ -5,11 +5,20 @@
 
 from __future__ import division, print_function, unicode_literals
 
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from copy import copy
 from os import chdir, getcwd, stat, walk
-from os.path import abspath, join
+from os.path import abspath, dirname, join
 from stat import S_ISREG
+import tarfile
+
+from libarchive import file_reader
+
+from . import surrogateescape
+
+
+data_dir = join(dirname(__file__), 'data')
+surrogateescape.register()
 
 
 def check_archive(archive, tree):
@@ -31,6 +40,68 @@ def check_archive(archive, tree):
 
     # Check that there are no missing directories or files
     assert len(tree2) == 0
+
+
+def get_entries(location):
+    """
+    Using the archive file at `location`, return an iterable of name->value
+    mappings for each libarchive.ArchiveEntry objects essential attributes.
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle
+    arbitrary binary pathdata.
+    """
+    with file_reader(location) as arch:
+        for entry in arch:
+            # libarchive introduces prefixes such as h prefix for
+            # hardlinks: tarfile does not, so we ignore the first char
+            mode = entry.strmode[1:].decode('ascii')
+            yield {
+                'path': surrogate_decode(entry.pathname),
+                'mtime': entry.mtime,
+                'size': entry.size,
+                'mode': mode,
+                'isreg': entry.isreg,
+                'isdir': entry.isdir,
+                'islnk': entry.islnk,
+                'issym': entry.issym,
+                'linkpath': surrogate_decode(entry.linkpath),
+                'isblk': entry.isblk,
+                'ischr': entry.ischr,
+                'isfifo': entry.isfifo,
+                'isdev': entry.isdev,
+            }
+
+
+def get_tarinfos(location):
+    """
+    Using the tar archive file at `location`, return an iterable of
+    name->value mappings for each tarfile.TarInfo objects essential
+    attributes.
+    Paths are base64-encoded because JSON is UTF-8 and cannot handle
+    arbitrary binary pathdata.
+    """
+    with closing(tarfile.open(location)) as tar:
+        for entry in tar:
+            path = surrogate_decode(entry.path or '')
+            if entry.isdir() and not path.endswith('/'):
+                path += '/'
+            # libarchive introduces prefixes such as h prefix for
+            # hardlinks: tarfile does not, so we ignore the first char
+            mode = tarfile.filemode(entry.mode)[1:]
+            yield {
+                'path': path,
+                'mtime': entry.mtime,
+                'size': entry.size,
+                'mode': mode,
+                'isreg': entry.isreg(),
+                'isdir': entry.isdir(),
+                'islnk': entry.islnk(),
+                'issym': entry.issym(),
+                'linkpath': surrogate_decode(entry.linkpath or None),
+                'isblk': entry.isblk(),
+                'ischr': entry.ischr(),
+                'isfifo': entry.isfifo(),
+                'isdev': entry.isdev(),
+            }
 
 
 @contextmanager
@@ -59,3 +130,9 @@ def treestat(d):
             fpath = join(dirpath, fname)
             r[fpath] = stat_dict(fpath)
     return r
+
+
+def surrogate_decode(o):
+    if isinstance(o, bytes):
+        return o.decode('utf8', errors='surrogateescape')
+    return o

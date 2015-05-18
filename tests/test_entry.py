@@ -6,20 +6,21 @@
 
 from __future__ import division, print_function, unicode_literals
 
-from base64 import b64encode, b64decode
-import codecs
-from contextlib import closing
+from codecs import open
 import json
-from os import environ, path, stat
-import sys
-import tarfile
-
-from libarchive import file_reader, memory_reader, memory_writer
-
 import locale
+from os import environ, stat
+from os.path import join
+
+from libarchive import memory_reader, memory_writer
+
+from . import data_dir, get_entries, get_tarinfos
+
+
 locale.setlocale(locale.LC_ALL, '')
 
-test_data = path.join(path.dirname(__file__), 'data')
+# needed for sane time stamp comparison
+environ['TZ'] = 'UTC'
 
 
 def test_entry_properties():
@@ -48,168 +49,44 @@ def test_entry_properties():
             assert entry.pathname == entry.name
 
 
-def test_check_archiveentry_against_tarfile_tarinfo():
-    test_file = path.join(test_data, 'special.tar')
-    expected = list(get_tarinfos(test_file))
-    result = list(get_entries(test_file))
-    for i, e in enumerate(expected):
-        assert e == result[i]
-    assert len(expected) == len(result)
-
-
-def test_check_archiveentry_against_tarfile_tarinfo_relative():
-    test_file = path.join(test_data, 'tar_relative.tar')
-    expected = list(get_tarinfos(test_file))
-    result = list(get_entries(test_file))
-    for i, e in enumerate(expected):
-        assert e == result[i]
-    assert len(expected) == len(result)
+def test_check_ArchiveEntry_against_TarInfo():
+    for name in ('special.tar', 'tar_relative.tar'):
+        path = join(data_dir, name)
+        tarinfos = list(get_tarinfos(path))
+        entries = list(get_entries(path))
+        for tarinfo, entry in zip(tarinfos, entries):
+            assert tarinfo == entry
+        assert len(tarinfos) == len(entries)
 
 
 def test_check_archiveentry_using_python_testtar():
-    test_file = path.join(test_data, 'testtar.tar')
-    expected_file = test_file + '.json' + (os if os == 'win' else '')
-    check_entries(test_file, expected_file)
+    check_entries(join(data_dir, 'testtar.tar'))
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_tar():
-    test_file = path.join(test_data, 'unicode.tar')
-    expected_file = test_file + '.json'
-    check_entries(test_file, expected_file)
+    check_entries(join(data_dir, 'unicode.tar'))
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
-    test_file = path.join(test_data, 'unicode.zip')
-    expected_file = test_file + '.json' + (os if os == 'win' else '')
-    check_entries(test_file, expected_file)
+    check_entries(join(data_dir, 'unicode.zip'))
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
-    test_file = path.join(test_data, 'unicode2.zip')
-    expected_file = test_file + '.json' + (os if os == 'win' else '')
-    check_entries(test_file, expected_file)
+    check_entries(join(data_dir, 'unicode2.zip'))
 
 
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
-    test_file = path.join(test_data, '\ud504\ub85c\uadf8\ub7a8.zip')
-    expected_file = test_file + '.json' + (os if os == 'win' else '')
-    check_entries(test_file, expected_file, regen=False)
+    check_entries(join(data_dir, '\ud504\ub85c\uadf8\ub7a8.zip'))
 
 
-sys_platform = str(sys.platform).lower()
-if 'linux' in sys_platform:
-    os = 'linux'
-elif'win32' in sys_platform:
-    os = 'win'
-elif 'darwin' in sys_platform:
-    os = 'mac'
-else:
-    raise Exception('Unknown OS/platform')
-
-
-def check_entries(test_file, expected_file, regen=False):
-    # needed for sane time stamp comparison
-    environ['TZ'] = 'UTC'
+def check_entries(test_file, regen=False):
+    fixture_file = test_file + '.json'
     if regen:
-        encoded = list(get_entries(test_file, encode=True))
-        with codecs.open(expected_file, 'w', encoding='UTF-8') as ex:
-            json.dump(encoded, ex, indent=2)
-
-    result = list(get_entries(test_file, encode=False))
-
-    with codecs.open(expected_file, encoding='UTF-8') as ex:
+        entries = list(get_entries(test_file))
+        with open(fixture_file, 'w', encoding='UTF-8') as ex:
+            json.dump(entries, ex, indent=2)
+    with open(fixture_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
-        # decode encoded paths back to bytes to get meaningful test failures
-        for ex in expected:
-            ex['path'] = decode_path(ex['path'])
-
-            ex['linkpath'] = decode_path(ex['linkpath'])
-    assert expected == result
-
-
-def encode_path(arch_path):
-    """
-    Return the `arch_path` bytes string as a base64-encoded unicode string.
-    Rationale: tests expectations are stored as UTF-8 JSON yet paths can be
-    arbitrary byte strings. This encoding ensures that we can safely store
-    bytes in UTF-8 strings.
-    """
-    return unicode(b64encode(arch_path)) if arch_path else arch_path
-
-
-def decode_path(arch_path):
-    """
-    Return a `arch_path` bytes string decoded from a base64-encoded unicode
-    string.
-    Rationale: tests expectations are stored as UTF-8 JSON yet paths can be
-    arbitrary byte strings. This encoding ensures that we can safely store
-    bytes in UTF-8 strings.
-    """
-    return str(b64decode(arch_path)) if arch_path else arch_path
-
-
-def get_entries(location, encode=False):
-    """
-    Using the archive file at `location`, return an iterable of name->value
-    mappings for each libarchive.ArchiveEntry objects essential attributes.
-    Paths are base64-encoded because JSON is UTF-8 and cannot handle
-    arbitrary binary pathdata.
-    """
-    with file_reader(location) as arch:
-        for entry in arch:
-            # libarchive introduces prefixes such as h prefix for
-            # hardlinks: tarfile does not, so we ignore the first char
-            mode = entry.strmode[1:].decode('ascii')
-            path = encode_path(entry.pathname) if encode else entry.pathname
-            lnkpth = encode_path(entry.linkpath) if encode else entry.linkpath
-            yield {
-                'path': path,
-                'mtime': entry.mtime,
-                'size': entry.size,
-                'mode': mode,
-                'isreg': entry.isreg,
-                'isdir': entry.isdir,
-                'islnk': entry.islnk,
-                'issym': entry.issym,
-                'linkpath': lnkpth,
-                'isblk': entry.isblk,
-                'ischr': entry.ischr,
-                'isfifo': entry.isfifo,
-                'isdev': entry.isdev,
-            }
-
-
-def get_tarinfos(location):
-    """
-    Using the tar archive file at `location`, return an iterable of
-    name->value mappings for each tarfile.TarInfo objects essential
-    attributes.
-    Paths are base64-encoded because JSON is UTF-8 and cannot handle
-    arbitrary binary pathdata.
-    """
-    with closing(tarfile.open(location)) as tar:
-        while True:
-            entry = tar.next()
-            if not entry:
-                break
-            path = entry.path or ''
-            if entry.isdir() and not entry.path.endswith('/'):
-                path += '/'
-            # libarchive introduces prefixes such as h prefix for
-            # hardlinks: tarfile does not, so we ignore the first char
-            mode = tarfile.filemode(entry.mode)[1:].decode('ascii')
-            yield {
-                'path': path,
-                'mtime': entry.mtime,
-                'size': entry.size,
-                'mode': mode,
-                'isreg': entry.isreg(),
-                'isdir': entry.isdir(),
-                'islnk': entry.islnk(),
-                'issym': entry.issym(),
-                'linkpath': entry.linkpath or None,
-                'isblk': entry.isblk(),
-                'ischr': entry.ischr(),
-                'isfifo': entry.isfifo(),
-                'isdev': entry.isdev(),
-            }
+    actual = list(get_entries(test_file))
+    for e1, e2 in zip(actual, expected):
+        assert e1 == e2
