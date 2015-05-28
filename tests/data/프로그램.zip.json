@@ -1,0 +1,32 @@
+[
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1390485689, 
+    "path": "hello.txt", 
+    "size": 14, 
+    "isdir": false, 
+    "linkpath": null, 
+    "isblk": false, 
+    "isreg": true, 
+    "isfifo": false, 
+    "mode": "rw-rw-r--", 
+    "islnk": false, 
+    "ischr": false
+  }, 
+  {
+    "issym": false, 
+    "isdev": false, 
+    "mtime": 1390485651, 
+    "path": "\ud504\ub85c\uadf8\ub7a8.txt", 
+    "size": 13, 
+    "isdir": false, 
+    "linkpath": null, 
+    "isblk": false, 
+    "isreg": true, 
+    "isfifo": false, 
+    "mode": "rw-rw-r--", 
+    "islnk": false, 
+    "ischr": false
+  }
+]
