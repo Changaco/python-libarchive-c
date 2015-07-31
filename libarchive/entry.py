@@ -126,3 +126,11 @@ class ArchiveEntry(object):
         # note we strip the mode because archive_entry_strmode
         # returns a trailing space: strcpy(bp, "?rwxrwxrwx ");
         return ffi.entry_strmode(self._entry_p).strip()
+
+    @property
+    def rdevmajor(self):
+        return ffi.entry_rdevmajor(self._entry_p)
+
+    @property
+    def rdevminor(self):
+        return ffi.entry_rdevminor(self._entry_p)

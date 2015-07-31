@@ -6,7 +6,7 @@
 from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
-    c_char_p, c_int, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
+    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
     CFUNCTYPE, POINTER,
 )
 import ctypes
@@ -119,6 +119,8 @@ ffi('entry_hardlink', [c_archive_entry_p], c_char_p)
 ffi('entry_hardlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_symlink', [c_archive_entry_p], c_char_p)
 ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
+ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
+ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 
