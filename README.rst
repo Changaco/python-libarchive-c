@@ -50,4 +50,4 @@ You can also find more thorough examples in the ``tests/`` directory.
 License
 =======
 
-LGPLv2 (or any later version)
+`CC0 Public Domain Dedication <http://creativecommons.org/publicdomain/zero/1.0/>`_
