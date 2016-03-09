@@ -4,9 +4,10 @@ from os.path import dirname, isdir, join
 import re
 from subprocess import CalledProcessError, check_output
 
-__all__ = ('get_version')
 
-tag_re = re.compile(r'\btag: ([0-9][^,]*)\b')
+PREFIX = ''
+
+tag_re = re.compile(r'\btag: %s([0-9][^,]*)\b' % PREFIX)
 version_re = re.compile('^Version: (.+)$', re.M)
 
 
@@ -20,18 +21,16 @@ def get_version():
 
     if isdir(join(d, '.git')):
         # Get the version using "git describe".
-        cmd = 'git describe --tags --match [0-9]* --dirty'.split()
+        cmd = 'git describe --tags --match %s[0-9]* --dirty' % PREFIX
         try:
-            version = check_output(cmd).decode().strip()
+            version = check_output(cmd.split()).decode().strip()[len(PREFIX):]
         except CalledProcessError:
-            print('Unable to get version number from git tags')
-            exit(1)
+            raise RuntimeError('Unable to get version number from git tags')
 
         # PEP 440 compatibility
         if '-' in version:
             if version.endswith('-dirty'):
-                print('The working tree is dirty')
-                exit(1)
+                raise RuntimeError('The working tree is dirty')
             version = '.post'.join(version.split('-')[:2])
 
     else:
