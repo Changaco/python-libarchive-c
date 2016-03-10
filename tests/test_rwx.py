@@ -1,7 +1,3 @@
-# This file is part of a program licensed under the terms of the GNU Lesser
-# General Public License version 2 (or at your option any later version)
-# as published by the Free Software Foundation: http://www.gnu.org/licenses/
-
 """Test reading, writing and extracting archives."""
 
 from __future__ import division, print_function, unicode_literals
