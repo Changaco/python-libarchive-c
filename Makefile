@@ -16,8 +16,8 @@ lint: env
 	./env/bin/flake8 libarchive tests
 
 test: env
-	./env/bin/py.test-3.4 -s -vv --cov libarchive --cov-report html ./tests
-	./env/bin/py.test-2.7 -s -vv --cov libarchive ./tests
+	./env/bin/python3 -m pytest -s -vv --cov libarchive --cov-report html ./tests
+	./env/bin/python2 -m pytest -s -vv --cov libarchive ./tests
 	@$(MAKE) --no-print-directory lint
 
 tests: test
