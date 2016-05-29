@@ -8,7 +8,10 @@ env: requirements_tests.txt
 	./env/bin/pip3 install -r requirements_tests.txt
 	./env/bin/pip2 install -r requirements_tests.txt
 
-dist:
+chmod:
+	git ls-files -z | xargs -0 chmod u=rwX,g=rX,o=rX
+
+dist: chmod
 	python3 setup.py sdist bdist_wheel
 	python2 setup.py sdist
 
@@ -22,5 +25,5 @@ test: env
 
 tests: test
 
-upload:
+upload: chmod
 	python3 setup.py sdist bdist_wheel upload

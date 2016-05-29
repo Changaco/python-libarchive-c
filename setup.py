@@ -1,8 +1,11 @@
+import os
 from os.path import join, dirname
 
 from setuptools import setup, find_packages
 
 from version import get_version
+
+os.umask(2)
 
 setup(
     name='libarchive-c',
