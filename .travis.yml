@@ -4,11 +4,19 @@ branches:
   only:
     - master
 
+cache:
+  directories:
+    - /usr/local/lib
+
 before_install:
   - deactivate
   - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
-  - wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz
-  - tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 && ./configure --disable-bsdcpio --disable-bsdtar && make && sudo make install && cd ..
+  - "if [ ! -e /usr/local/lib/libarchive.so ]; then
+        wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz &&
+        tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 &&
+        ./configure --disable-bsdcpio --disable-bsdtar && make &&
+        sudo make install && cd .. ;
+    fi"
 
 install:
   - ~/virtualenv/python2.7/bin/pip install -r requirements_tests.txt
