@@ -12,13 +12,13 @@ before_install:
 
 install:
   - ~/virtualenv/python2.7/bin/pip install -r requirements_tests.txt
-  - ~/virtualenv/python3.4/bin/pip install -r requirements_tests.txt
+  - ~/virtualenv/python3.5/bin/pip install -r requirements_tests.txt
 
 script:
   - ~/virtualenv/python2.7/bin/py.test -s -vv --cov libarchive ./tests
   - ~/virtualenv/python2.7/bin/flake8 libarchive tests
-  - ~/virtualenv/python3.4/bin/py.test -s -vv --cov libarchive ./tests
-  - ~/virtualenv/python3.4/bin/flake8 libarchive tests
+  - ~/virtualenv/python3.5/bin/py.test -s -vv --cov libarchive ./tests
+  - ~/virtualenv/python3.5/bin/flake8 libarchive tests
 
 notifications:
   email: false
