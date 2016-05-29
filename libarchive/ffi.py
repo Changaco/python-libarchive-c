@@ -1,8 +1,8 @@
 from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
-    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_ssize_t, c_void_p, c_wchar_p,
-    CFUNCTYPE, POINTER,
+    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_ssize_t, c_void_p,
+    c_wchar_p, CFUNCTYPE, POINTER,
 )
 import ctypes
 from ctypes.util import find_library
