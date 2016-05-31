@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 from version import get_version
 
-os.umask(2)
+os.umask(0o022)
 
 setup(
     name='libarchive-c',
