@@ -2,6 +2,7 @@ from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
+from errno import EISDIR
 
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
@@ -67,7 +68,7 @@ class ArchiveWrite(object):
                                         break
                                     write_data(write_p, data, len(data))
                         except IOError as e:
-                            if e.errno != 21:
+                            if e.errno != EISDIR:
                                 raise  # pragma: no cover
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
