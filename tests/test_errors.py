@@ -1,5 +1,7 @@
 from __future__ import division, print_function, unicode_literals
 
+from errno import ENOENT
+
 import pytest
 
 from libarchive import ArchiveError, ffi, memory_writer
@@ -10,7 +12,7 @@ def test_add_files_nonexistent():
         with pytest.raises(ArchiveError) as e:
             archive.add_files('nonexistent')
         assert e.value.msg
-        assert e.value.errno == 2
+        assert e.value.errno == ENOENT
         assert e.value.retcode == -25
 
 
