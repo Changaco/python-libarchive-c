@@ -68,14 +68,15 @@ def test_check_archiveentry_with_unicode_and_binary_entries_zip():
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
-    check_entries(join(data_dir, 'unicode2.zip'))
+    check_entries(join(data_dir, 'unicode2.zip'), ignore='mode')
 
 
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
     check_entries(join(data_dir, '\ud504\ub85c\uadf8\ub7a8.zip'))
 
 
-def check_entries(test_file, regen=False):
+def check_entries(test_file, regen=False, ignore=''):
+    ignore = ignore.split()
     fixture_file = test_file + '.json'
     if regen:
         entries = list(get_entries(test_file))
@@ -85,4 +86,7 @@ def check_entries(test_file, regen=False):
         expected = json.load(ex)
     actual = list(get_entries(test_file))
     for e1, e2 in zip(actual, expected):
+        for key in ignore:
+            e1.pop(key)
+            e2.pop(key)
         assert e1 == e2
