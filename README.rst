@@ -11,7 +11,12 @@ Installation
 
     pip install libarchive-c
 
-python-libarchive-c is compatible with python 2 and 3.
+Compatibility
+=============
+
+python-libarchive-c is currently tested with python 2.7 and 3.5.
+
+If you find an incompatibility with older versions you can send us a small patch, but we won't accept big changes.
 
 Usage
 =====
