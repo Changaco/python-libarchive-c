@@ -1,9 +1,15 @@
 from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
-    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_ssize_t, c_void_p,
+    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_void_p,
     c_wchar_p, CFUNCTYPE, POINTER,
 )
+
+try:
+    from ctypes import c_ssize_t
+except ImportError:
+    from ctypes import c_longlong as c_ssize_t
+
 import ctypes
 from ctypes.util import find_library
 import logging
