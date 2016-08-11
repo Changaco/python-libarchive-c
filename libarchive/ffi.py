@@ -46,6 +46,9 @@ OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 VOID_CB = lambda *_: ARCHIVE_OK
 
+# Other types
+REGULAR_FILE = 0o100000
+DEFAULT_UNIX_PERMISSION = 0o664
 
 # Type aliases, for readability
 
@@ -122,6 +125,11 @@ ffi('entry_symlink', [c_archive_entry_p], c_char_p)
 ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
+
+ffi('entry_set_pathname', [c_archive_entry_p, c_wchar_p], c_int)
+ffi('entry_set_size', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_filetype', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_perm', [c_archive_entry_p, c_int], c_int)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 

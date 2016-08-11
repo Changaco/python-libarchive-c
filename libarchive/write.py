@@ -7,11 +7,12 @@ from errno import EISDIR
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
 from .ffi import (
-    OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, VOID_CB,
-    ARCHIVE_EOF, page_size,
-    entry_sourcepath, entry_clear,
-    read_disk_new, read_disk_open_w, read_next_header2, read_disk_descend,
-    read_free, write_header, write_data, write_finish_entry,
+    OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, VOID_CB, REGULAR_FILE,
+    DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
+    page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
+    read_next_header2, read_disk_descend, read_free, write_header, write_data,
+    write_finish_entry, entry_set_pathname, entry_set_size, entry_set_filetype,
+    entry_set_perm
 )
 
 
@@ -72,6 +73,39 @@ class ArchiveWrite(object):
                                 raise  # pragma: no cover
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
+
+    def add_entry_from_memory(self, entry):
+        """"Add file from memory to archive.
+        :param entry: `Entry` with path, size, iterable args
+        :type entry: object
+        """
+        archive_pointer = self._pointer
+
+        with new_archive_entry() as archive_entry_pointer:
+            self._create_entry_archive(archive_entry_pointer, entry)
+
+            for chunk in entry.iterable:
+                if not chunk:
+                    break
+                write_data(archive_pointer, chunk, len(chunk))
+
+            self._close_entry_archive(archive_entry_pointer)
+
+    def _create_entry_archive(self, archive_entry_pointer, entry):
+        """Helper for setting up necessary entry parameters."""
+        archive_entry = ArchiveEntry(None, archive_entry_pointer)
+
+        entry_set_pathname(archive_entry_pointer, entry.path)
+        archive_entry.pathname = entry.path
+        entry_set_size(archive_entry_pointer, entry.size)
+        entry_set_filetype(archive_entry_pointer, REGULAR_FILE)
+        entry_set_perm(archive_entry_pointer, DEFAULT_UNIX_PERMISSION)
+        write_header(self._pointer, archive_entry_pointer)
+
+    def _close_entry_archive(self, archive_entry_pointer):
+        """Helper for closing archive."""
+        write_finish_entry(self._pointer)
+        entry_clear(archive_entry_pointer)
 
 
 @contextmanager
