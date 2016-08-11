@@ -3,6 +3,7 @@
 from __future__ import division, print_function, unicode_literals
 
 import libarchive
+import collections
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 
 from . import check_archive, in_dir, treestat
@@ -97,3 +98,31 @@ def test_custom_writer():
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as archive:
         check_archive(archive, tree)
+
+
+def test_adding_entry_from_memory():
+    Entry = collections.namedtuple('Entry', ['path', 'size', 'iterable'])
+    in_memory_file_content = 'content'
+
+    entry = Entry(
+        path='this is path',
+        size=len(in_memory_file_content),
+        iterable=in_memory_file_content
+    )
+
+    blocks = []
+
+    def write_callback(data):
+        blocks.append(data[:])
+        return len(data)
+
+    with libarchive.custom_writer(write_callback, 'zip') as archive:
+        archive.add_entry_from_memory(entry)
+
+    buf = b''.join(blocks)
+    with libarchive.memory_reader(buf) as memory_archive:
+        for archive_entry in memory_archive:
+            assert in_memory_file_content.encode() == b''.join(
+                archive_entry.get_blocks()
+            )
+            assert archive_entry.path == entry.path
