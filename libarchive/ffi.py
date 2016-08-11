@@ -22,7 +22,6 @@ from .exception import ArchiveError
 logger = logging.getLogger('libarchive')
 
 page_size = mmap.PAGESIZE
-
 libarchive_path = os.environ.get('LIBARCHIVE') or find_library('archive')
 libarchive = ctypes.cdll.LoadLibrary(libarchive_path)
 
@@ -126,7 +125,6 @@ ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 
-ffi('entry_set_pathname', [c_archive_entry_p, c_wchar_p], c_int)
 ffi('entry_set_size', [c_archive_entry_p, c_int], c_int)
 ffi('entry_set_filetype', [c_archive_entry_p, c_int], c_int)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], c_int)
