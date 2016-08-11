@@ -11,8 +11,7 @@ from .ffi import (
     DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
     page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
     read_next_header2, read_disk_descend, read_free, write_header, write_data,
-    write_finish_entry, entry_set_pathname, entry_set_size, entry_set_filetype,
-    entry_set_perm
+    write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm
 )
 
 
@@ -95,7 +94,6 @@ class ArchiveWrite(object):
         """Helper for setting up necessary entry parameters."""
         archive_entry = ArchiveEntry(None, archive_entry_pointer)
 
-        entry_set_pathname(archive_entry_pointer, entry.path)
         archive_entry.pathname = entry.path
         entry_set_size(archive_entry_pointer, entry.size)
         entry_set_filetype(archive_entry_pointer, REGULAR_FILE)
