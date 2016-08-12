@@ -73,29 +73,38 @@ class ArchiveWrite(object):
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
 
-    def add_entry_from_memory(self, entry):
+    def add_entry_from_memory(self, entry_path, entry_size, entry_data):
         """"Add file from memory to archive.
-        :param entry: `Entry` with path, size, iterable args
-        :type entry: object
+
+        :param entry_path: where entry should be places in archive
+        :type entry_path: str
+        :param entry_size: entire size of entry
+        :type entry_size: int
+        :param entry_data: content of entry
+        :type entry_data: iterable
         """
         archive_pointer = self._pointer
 
         with new_archive_entry() as archive_entry_pointer:
-            self._create_entry_archive(archive_entry_pointer, entry)
+            self._create_entry_archive(
+                archive_entry_pointer, entry_path, entry_size
+            )
 
-            for chunk in entry.iterable:
+            for chunk in entry_data:
                 if not chunk:
                     break
                 write_data(archive_pointer, chunk, len(chunk))
 
             self._close_entry_archive(archive_entry_pointer)
 
-    def _create_entry_archive(self, archive_entry_pointer, entry):
+    def _create_entry_archive(
+            self, archive_entry_pointer, entry_path, entry_size
+    ):
         """Helper for setting up necessary entry parameters."""
         archive_entry = ArchiveEntry(None, archive_entry_pointer)
 
-        archive_entry.pathname = entry.path
-        entry_set_size(archive_entry_pointer, entry.size)
+        archive_entry.pathname = entry_path
+        entry_set_size(archive_entry_pointer, entry_size)
         entry_set_filetype(archive_entry_pointer, REGULAR_FILE)
         entry_set_perm(archive_entry_pointer, DEFAULT_UNIX_PERMISSION)
         write_header(self._pointer, archive_entry_pointer)
