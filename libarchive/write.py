@@ -129,8 +129,11 @@ def new_archive_write(format_name, filter_name=None):
 
 
 @contextmanager
-def custom_writer(write_func, format_name, filter_name=None,
-                  open_func=VOID_CB, close_func=VOID_CB, block_size=page_size):
+def custom_writer(
+        write_func, format_name, filter_name=None,
+        open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+        archive_obj_to_write=ArchiveWrite
+):
 
     def write_cb_internal(archive_p, context, buffer_, length):
         data = cast(buffer_, POINTER(c_char * length))[0]
@@ -144,27 +147,34 @@ def custom_writer(write_func, format_name, filter_name=None,
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
         ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
-        yield ArchiveWrite(archive_p)
+        yield archive_obj_to_write(archive_p)
 
 
 @contextmanager
-def fd_writer(fd, format_name, filter_name=None):
+def fd_writer(
+        fd, format_name, filter_name=None, archive_obj_to_write=ArchiveWrite
+):
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_open_fd(archive_p, fd)
-        yield ArchiveWrite(archive_p)
+        yield archive_obj_to_write(archive_p)
 
 
 @contextmanager
-def file_writer(filepath, format_name, filter_name=None):
+def file_writer(
+        filepath, format_name, filter_name=None,
+        archive_obj_to_write=ArchiveWrite
+):
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
-        yield ArchiveWrite(archive_p)
+        yield archive_obj_to_write(archive_p)
 
 
 @contextmanager
-def memory_writer(buf, format_name, filter_name=None):
+def memory_writer(
+        buf, format_name, filter_name=None, archive_obj_to_write=ArchiveWrite
+):
     with new_archive_write(format_name, filter_name) as archive_p:
         used = byref(c_size_t())
         buf_p = cast(buf, c_void_p)
         ffi.write_open_memory(archive_p, buf_p, len(buf), used)
-        yield ArchiveWrite(archive_p)
+        yield archive_obj_to_write(archive_p)
