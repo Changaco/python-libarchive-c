@@ -22,6 +22,7 @@ from .exception import ArchiveError
 logger = logging.getLogger('libarchive')
 
 page_size = mmap.PAGESIZE
+
 libarchive_path = os.environ.get('LIBARCHIVE') or find_library('archive')
 libarchive = ctypes.cdll.LoadLibrary(libarchive_path)
 
@@ -34,6 +35,8 @@ ARCHIVE_RETRY = -10   # Retry might succeed.
 ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
+REGULAR_FILE = 0o100000
+DEFAULT_UNIX_PERMISSION = 0o664
 
 
 # Callback types
@@ -45,9 +48,6 @@ OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 VOID_CB = lambda *_: ARCHIVE_OK
 
-# Other types
-REGULAR_FILE = 0o100000
-DEFAULT_UNIX_PERMISSION = 0o664
 
 # Type aliases, for readability
 
