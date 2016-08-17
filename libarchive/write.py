@@ -73,7 +73,11 @@ class ArchiveWrite(object):
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
 
-    def add_entry_from_memory(self, entry_path, entry_size, entry_data):
+    def add_file_from_memory(
+            self, entry_path, entry_size, entry_data,
+            filetype=REGULAR_FILE,
+            permission=DEFAULT_UNIX_PERMISSION
+    ):
         """"Add file from memory to archive.
 
         :param entry_path: where entry should be places in archive
@@ -82,12 +86,18 @@ class ArchiveWrite(object):
         :type entry_size: int
         :param entry_data: content of entry
         :type entry_data: iterable
+        :param filetype: which type of file: normal, symlink etc.
+        should entry be created as
+        :type filetype: octal number
+        :param permission: with which permission should entry be created
+        :type permission: octal number
         """
         archive_pointer = self._pointer
 
         with new_archive_entry() as archive_entry_pointer:
             self._create_entry_archive(
-                archive_entry_pointer, entry_path, entry_size
+                archive_entry_pointer, entry_path, entry_size,
+                filetype, permission
             )
 
             for chunk in entry_data:
@@ -98,15 +108,16 @@ class ArchiveWrite(object):
             self._close_entry_archive(archive_entry_pointer)
 
     def _create_entry_archive(
-            self, archive_entry_pointer, entry_path, entry_size
+            self, archive_entry_pointer, entry_path, entry_size,
+            filetype, permission
     ):
         """Helper for setting up necessary entry parameters."""
         archive_entry = ArchiveEntry(None, archive_entry_pointer)
 
         archive_entry.pathname = entry_path
         entry_set_size(archive_entry_pointer, entry_size)
-        entry_set_filetype(archive_entry_pointer, REGULAR_FILE)
-        entry_set_perm(archive_entry_pointer, DEFAULT_UNIX_PERMISSION)
+        entry_set_filetype(archive_entry_pointer, filetype)
+        entry_set_perm(archive_entry_pointer, permission)
         write_header(self._pointer, archive_entry_pointer)
 
     def _close_entry_archive(self, archive_entry_pointer):
@@ -132,7 +143,7 @@ def new_archive_write(format_name, filter_name=None):
 def custom_writer(
         write_func, format_name, filter_name=None,
         open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_obj_to_write=ArchiveWrite
+        archive_write_class=ArchiveWrite
 ):
 
     def write_cb_internal(archive_p, context, buffer_, length):
@@ -147,7 +158,7 @@ def custom_writer(
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
         ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
-        yield archive_obj_to_write(archive_p)
+        yield archive_write_class(archive_p)
 
 
 @contextmanager

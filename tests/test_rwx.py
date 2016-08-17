@@ -111,7 +111,7 @@ def test_adding_entry_from_memory():
         return len(data)
 
     with libarchive.custom_writer(write_callback, 'zip') as archive:
-        archive.add_entry_from_memory(entry_path, entry_size, entry_data)
+        archive.add_file_from_memory(entry_path, entry_size, entry_data)
 
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
