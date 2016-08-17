@@ -163,29 +163,29 @@ def custom_writer(
 
 @contextmanager
 def fd_writer(
-        fd, format_name, filter_name=None, archive_obj_to_write=ArchiveWrite
+        fd, format_name, filter_name=None, archive_write_class=ArchiveWrite
 ):
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_open_fd(archive_p, fd)
-        yield archive_obj_to_write(archive_p)
+        yield archive_write_class(archive_p)
 
 
 @contextmanager
 def file_writer(
         filepath, format_name, filter_name=None,
-        archive_obj_to_write=ArchiveWrite
+        archive_write_class=ArchiveWrite
 ):
     with new_archive_write(format_name, filter_name) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
-        yield archive_obj_to_write(archive_p)
+        yield archive_write_class(archive_p)
 
 
 @contextmanager
 def memory_writer(
-        buf, format_name, filter_name=None, archive_obj_to_write=ArchiveWrite
+        buf, format_name, filter_name=None, archive_write_class=ArchiveWrite
 ):
     with new_archive_write(format_name, filter_name) as archive_p:
         used = byref(c_size_t())
         buf_p = cast(buf, c_void_p)
         ffi.write_open_memory(archive_p, buf_p, len(buf), used)
-        yield archive_obj_to_write(archive_p)
+        yield archive_write_class(archive_p)
