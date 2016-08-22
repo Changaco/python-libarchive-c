@@ -35,6 +35,8 @@ ARCHIVE_RETRY = -10   # Retry might succeed.
 ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
+REGULAR_FILE = 0o100000
+DEFAULT_UNIX_PERMISSION = 0o664
 
 
 # Callback types
@@ -122,6 +124,10 @@ ffi('entry_symlink', [c_archive_entry_p], c_char_p)
 ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
+
+ffi('entry_set_size', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_filetype', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_perm', [c_archive_entry_p, c_int], c_int)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 

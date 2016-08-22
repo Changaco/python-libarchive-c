@@ -97,3 +97,26 @@ def test_custom_writer():
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as archive:
         check_archive(archive, tree)
+
+
+def test_adding_entry_from_memory():
+    entry_path = 'this is path'
+    entry_data = 'content'
+    entry_size = len(entry_data)
+
+    blocks = []
+
+    def write_callback(data):
+        blocks.append(data[:])
+        return len(data)
+
+    with libarchive.custom_writer(write_callback, 'zip') as archive:
+        archive.add_file_from_memory(entry_path, entry_size, entry_data)
+
+    buf = b''.join(blocks)
+    with libarchive.memory_reader(buf) as memory_archive:
+        for archive_entry in memory_archive:
+            assert entry_data.encode() == b''.join(
+                archive_entry.get_blocks()
+            )
+            assert archive_entry.path == entry_path
