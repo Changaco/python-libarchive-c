@@ -95,35 +95,21 @@ class ArchiveWrite(object):
         archive_pointer = self._pointer
 
         with new_archive_entry() as archive_entry_pointer:
-            self._create_entry_archive(
-                archive_entry_pointer, entry_path, entry_size,
-                filetype, permission
-            )
+            archive_entry = ArchiveEntry(None, archive_entry_pointer)
+
+            archive_entry.pathname = entry_path
+            entry_set_size(archive_entry_pointer, entry_size)
+            entry_set_filetype(archive_entry_pointer, filetype)
+            entry_set_perm(archive_entry_pointer, permission)
+            write_header(archive_pointer, archive_entry_pointer)
 
             for chunk in entry_data:
                 if not chunk:
                     break
                 write_data(archive_pointer, chunk, len(chunk))
 
-            self._close_entry_archive(archive_entry_pointer)
-
-    def _create_entry_archive(
-            self, archive_entry_pointer, entry_path, entry_size,
-            filetype, permission
-    ):
-        """Helper for setting up necessary entry parameters."""
-        archive_entry = ArchiveEntry(None, archive_entry_pointer)
-
-        archive_entry.pathname = entry_path
-        entry_set_size(archive_entry_pointer, entry_size)
-        entry_set_filetype(archive_entry_pointer, filetype)
-        entry_set_perm(archive_entry_pointer, permission)
-        write_header(self._pointer, archive_entry_pointer)
-
-    def _close_entry_archive(self, archive_entry_pointer):
-        """Helper for closing archive."""
-        write_finish_entry(self._pointer)
-        entry_clear(archive_entry_pointer)
+            write_finish_entry(archive_pointer)
+            entry_clear(archive_entry_pointer)
 
 
 @contextmanager
