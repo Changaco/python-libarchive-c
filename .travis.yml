@@ -1,4 +1,10 @@
 language: python
+python:
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  - "3.5"
 
 branches:
   only:
@@ -18,15 +24,9 @@ before_install:
         sudo make install && cd .. ;
     fi"
 
-install:
-  - ~/virtualenv/python2.7/bin/pip install -r requirements_tests.txt
-  - ~/virtualenv/python3.5/bin/pip install -r requirements_tests.txt
+install: pip install tox-travis
 
-script:
-  - ~/virtualenv/python2.7/bin/py.test -s -vv --cov libarchive ./tests
-  - ~/virtualenv/python2.7/bin/flake8 libarchive tests
-  - ~/virtualenv/python3.5/bin/py.test -s -vv --cov libarchive ./tests
-  - ~/virtualenv/python3.5/bin/flake8 libarchive tests
+script: tox
 
 notifications:
   email: false
