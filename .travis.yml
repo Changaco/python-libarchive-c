@@ -1,9 +1,5 @@
 language: python
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+python: "3.5"
 
 branches:
   only:
@@ -23,7 +19,7 @@ before_install:
         sudo make install && cd .. ;
     fi"
 
-install: pip install tox-travis
+install: pip install tox
 
 script: tox
 
