@@ -1,4 +1,5 @@
 language: python
+python: "3.5"
 
 branches:
   only:
@@ -6,27 +7,25 @@ branches:
 
 cache:
   directories:
-    - /usr/local/lib
+    - /opt/python-libarchive-c
+
+env:
+  global:
+    - LIBARCHIVE=/opt/python-libarchive-c/lib/libarchive.so
 
 before_install:
   - deactivate
   - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
-  - "if [ ! -e /usr/local/lib/libarchive.so ]; then
+  - "if [ ! -e $LIBARCHIVE ]; then
         wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz &&
         tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 &&
-        ./configure --disable-bsdcpio --disable-bsdtar && make &&
-        sudo make install && cd .. ;
+        ./configure --prefix=/opt/python-libarchive-c --disable-bsdcpio --disable-bsdtar &&
+        make && sudo make install && cd .. ;
     fi"
 
-install:
-  - ~/virtualenv/python2.7/bin/pip install -r requirements_tests.txt
-  - ~/virtualenv/python3.5/bin/pip install -r requirements_tests.txt
+install: pip install tox
 
-script:
-  - ~/virtualenv/python2.7/bin/py.test -s -vv --cov libarchive ./tests
-  - ~/virtualenv/python2.7/bin/flake8 libarchive tests
-  - ~/virtualenv/python3.5/bin/py.test -s -vv --cov libarchive ./tests
-  - ~/virtualenv/python3.5/bin/flake8 libarchive tests
+script: tox
 
 notifications:
   email: false
