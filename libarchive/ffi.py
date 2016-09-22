@@ -125,7 +125,7 @@ ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 
-ffi('entry_set_size', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_size', [c_archive_entry_p, c_longlong], c_int)
 ffi('entry_set_filetype', [c_archive_entry_p, c_int], c_int)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], c_int)
 
