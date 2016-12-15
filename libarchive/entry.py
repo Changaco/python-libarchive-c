@@ -93,13 +93,25 @@ class ArchiveEntry(object):
     def atime(self):
         return ffi.entry_atime(self._entry_p)
 
+    def set_atime(self, timestamp_sec, timestamp_nsec):
+        return ffi.entry_set_atime(self._entry_p,
+                                   timestamp_sec, timestamp_nsec)
+
     @property
     def mtime(self):
         return ffi.entry_mtime(self._entry_p)
 
+    def set_mtime(self, timestamp_sec, timestamp_nsec):
+        return ffi.entry_set_mtime(self._entry_p,
+                                   timestamp_sec, timestamp_nsec)
+
     @property
     def ctime(self):
         return ffi.entry_ctime(self._entry_p)
+
+    def set_ctime(self, timestamp_sec, timestamp_nsec):
+        return ffi.entry_set_ctime(self._entry_p,
+                                   timestamp_sec, timestamp_nsec)
 
     def _getpathname(self):
         return (ffi.entry_pathname_w(self._entry_p) or

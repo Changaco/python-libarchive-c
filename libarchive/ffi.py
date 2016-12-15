@@ -1,7 +1,7 @@
 from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
-    c_char_p, c_int, c_uint, c_longlong, c_size_t, c_void_p,
+    c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_void_p,
     c_wchar_p, CFUNCTYPE, POINTER,
 )
 
@@ -127,9 +127,12 @@ ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 
-ffi('entry_set_size', [c_archive_entry_p, c_longlong], c_int)
+ffi('entry_set_size', [c_archive_entry_p, c_longlong], c_longlong)
 ffi('entry_set_filetype', [c_archive_entry_p, c_int], c_int)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], c_int)
+ffi('entry_set_atime', [c_archive_entry_p, c_int, c_long], None)
+ffi('entry_set_mtime', [c_archive_entry_p, c_int, c_long], None)
+ffi('entry_set_ctime', [c_archive_entry_p, c_int, c_long], None)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 
@@ -239,6 +242,8 @@ ffi('write_data', [c_archive_p, c_void_p, c_size_t], c_ssize_t, check_int)
 ffi('write_data_block', [c_archive_p, c_void_p, c_size_t, c_longlong],
     c_int, check_int)
 ffi('write_finish_entry', [c_archive_p], c_int, check_int)
+
+ffi('write_fail', [c_archive_p], c_int, check_int)
 
 ffi('write_close', [c_archive_p], c_int, check_int)
 ffi('write_free', [c_archive_p], c_int, check_int)
