@@ -22,7 +22,9 @@ def check_archive(archive, tree):
         epath = str(e).rstrip('/')
         assert epath in tree2
         estat = tree2.pop(epath)
+        assert e.atime == int(estat['atime'])
         assert e.mtime == int(estat['mtime'])
+        assert e.ctime == int(estat['ctime'])
         if not e.isdir:
             size = e.size
             if size is not None:
@@ -51,7 +53,9 @@ def get_entries(location):
             mode = entry.strmode[1:].decode('ascii')
             yield {
                 'path': surrogate_decode(entry.pathname),
+                'atime': entry.atime,
                 'mtime': entry.mtime,
+                'ctime': entry.ctime,
                 'size': entry.size,
                 'mode': mode,
                 'isreg': entry.isreg,
@@ -84,7 +88,9 @@ def get_tarinfos(location):
             mode = tarfile.filemode(entry.mode)[1:]
             yield {
                 'path': path,
+                'atime': entry.atime,
                 'mtime': entry.mtime,
+                'ctime': entry.ctime,
                 'size': entry.size,
                 'mode': mode,
                 'isreg': entry.isreg(),
@@ -110,8 +116,8 @@ def in_dir(dirpath):
 
 
 def stat_dict(path):
-    keys = set(('uid', 'gid', 'mtime'))
-    mode, _, _, _, uid, gid, size, _, mtime, _ = stat(path)
+    keys = set(('uid', 'gid', 'atime', 'mtime', 'ctime'))
+    mode, _, _, _, uid, gid, size, atime, mtime, ctime = stat(path)
     if S_ISREG(mode):
         keys.add('size')
     return {k: v for k, v in locals().items() if k in keys}
