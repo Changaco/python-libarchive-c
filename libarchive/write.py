@@ -2,7 +2,6 @@ from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
-from errno import EISDIR
 
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
@@ -60,16 +59,13 @@ class ArchiveWrite(object):
                         entry.pathname = entry.pathname.lstrip('/')
                         read_disk_descend(read_p)
                         write_header(write_p, entry_p)
-                        try:
+                        if entry.isreg:
                             with open(entry_sourcepath(entry_p), 'rb') as f:
                                 while 1:
                                     data = f.read(block_size)
                                     if not data:
                                         break
                                     write_data(write_p, data, len(data))
-                        except IOError as e:
-                            if e.errno != EISDIR:
-                                raise  # pragma: no cover
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
 
