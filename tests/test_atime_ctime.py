@@ -1,13 +1,12 @@
 from __future__ import division, print_function, unicode_literals
 
-from os import stat
 from copy import copy
+from os import stat
 
-from libarchive import memory_reader, memory_writer, file_writer, \
-                       file_reader, extract_file
-from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
+from libarchive import (file_reader, file_writer, memory_reader,
+                        memory_writer)
 
-from . import in_dir, treestat
+from . import treestat
 
 
 def check_atime_ctime(archive, tree):
