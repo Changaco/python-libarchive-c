@@ -117,7 +117,7 @@ def stat_dict(path):
     return {k: v for k, v in locals().items() if k in keys}
 
 
-def treestat(d):
+def treestat(d, stat_dict=stat_dict):
     r = {}
     for dirpath, dirnames, filenames in walk(d):
         r[dirpath] = stat_dict(dirpath)
