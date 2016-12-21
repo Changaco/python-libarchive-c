@@ -128,7 +128,7 @@ ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
-ffi('entry_set_filetype', [c_archive_entry_p, c_int], None)
+ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], None)
 ffi('entry_set_atime', [c_archive_entry_p, c_int, c_long], None)
 ffi('entry_set_mtime', [c_archive_entry_p, c_int, c_long], None)
