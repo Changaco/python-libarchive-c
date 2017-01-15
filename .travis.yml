@@ -1,5 +1,5 @@
 language: python
-python: "3.5"
+python: "3.6"
 
 branches:
   only:
@@ -14,7 +14,6 @@ env:
     - LIBARCHIVE=/opt/python-libarchive-c/lib/libarchive.so
 
 before_install:
-  - deactivate
   - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
   - "if [ ! -e $LIBARCHIVE ]; then
         wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz &&

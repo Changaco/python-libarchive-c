@@ -4,6 +4,8 @@ from __future__ import division, print_function, unicode_literals
 
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
+from libarchive.write import memory_writer
+from mock import patch
 
 from . import check_archive, in_dir, treestat
 
@@ -97,6 +99,26 @@ def test_custom_writer():
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as archive:
         check_archive(archive, tree)
+
+
+@patch('libarchive.ffi.write_fail')
+def test_write_fail(write_fail_mock):
+    buf = bytes(bytearray(1000000))
+    try:
+        with memory_writer(buf, 'gnutar', 'xz') as archive:
+            archive.add_files('libarchive/')
+            raise TypeError
+    except TypeError:
+        pass
+    assert write_fail_mock.called
+
+
+@patch('libarchive.ffi.write_fail')
+def test_write_not_fail(write_fail_mock):
+    buf = bytes(bytearray(1000000))
+    with memory_writer(buf, 'gnutar', 'xz') as archive:
+        archive.add_files('libarchive/')
+    assert not write_fail_mock.called
 
 
 def test_adding_entry_from_memory():

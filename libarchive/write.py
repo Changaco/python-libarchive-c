@@ -116,9 +116,12 @@ def new_archive_write(format_name, filter_name=None):
         getattr(ffi, 'write_add_filter_'+filter_name)(archive_p)
     try:
         yield archive_p
-    finally:
         ffi.write_close(archive_p)
         ffi.write_free(archive_p)
+    except:
+        ffi.write_fail(archive_p)
+        ffi.write_free(archive_p)
+        raise
 
 
 @contextmanager
