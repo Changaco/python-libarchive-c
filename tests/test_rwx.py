@@ -104,7 +104,6 @@ def test_custom_writer():
 @patch('libarchive.ffi.write_fail')
 def test_write_fail(write_fail_mock):
     buf = bytes(bytearray(1000000))
-
     try:
         with memory_writer(buf, 'gnutar', 'xz') as archive:
             archive.add_files('libarchive/')
@@ -117,7 +116,6 @@ def test_write_fail(write_fail_mock):
 @patch('libarchive.ffi.write_fail')
 def test_write_not_fail(write_fail_mock):
     buf = bytes(bytearray(1000000))
-
     with memory_writer(buf, 'gnutar', 'xz') as archive:
         archive.add_files('libarchive/')
     assert not write_fail_mock.called
