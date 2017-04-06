@@ -33,7 +33,7 @@ def time_check(time_tuple, timefmt):
     return timefmt(maths)
 
 
-@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ])
+@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_memory_atime_ctime(archfmt, timefmt):
     # Collect information on what should be in the archive
     tree = treestat('libarchive', stat_dict)
@@ -48,7 +48,7 @@ def test_memory_atime_ctime(archfmt, timefmt):
         check_atime_ctime(archive2, tree, timefmt=timefmt)
 
 
-@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ])
+@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_file_atime_ctime(archfmt, timefmt, tmpdir):
     archive_path = "{0}/test.{1}".format(tmpdir.strpath, archfmt)
 
@@ -64,7 +64,7 @@ def test_file_atime_ctime(archfmt, timefmt, tmpdir):
         check_atime_ctime(archive, tree, timefmt=timefmt)
 
 
-@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ])
+@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_memory_time_setters(archfmt, timefmt):
     # Create an archive of our libarchive/ directory
 
@@ -91,7 +91,7 @@ def test_memory_time_setters(archfmt, timefmt):
             assert entry.ctime == time_check(ctimestamp, timefmt)
 
 
-@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ])
+@pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_file_time_setters(archfmt, timefmt, tmpdir):
     # Create an archive of our libarchive/ directory
     archive_path = tmpdir.join('/test.{0}'.format(archfmt)).strpath
