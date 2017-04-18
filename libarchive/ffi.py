@@ -44,6 +44,9 @@ DEFAULT_UNIX_PERMISSION = 0o664
 WRITE_CALLBACK = CFUNCTYPE(
     c_ssize_t, c_void_p, c_void_p, POINTER(c_void_p), c_size_t
 )
+READ_CALLBACK = CFUNCTYPE(
+    c_ssize_t, c_void_p, c_void_p, POINTER(c_void_p)
+)
 OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 VOID_CB = lambda *_: ARCHIVE_OK
@@ -170,6 +173,9 @@ for f_name in list(READ_FILTERS):
         logger.warning('read filter "%s" is not supported' % f_name)
         READ_FILTERS.remove(f_name)
 
+ffi('read_open',
+    [c_archive_p, c_void_p, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK],
+    c_int, check_int)
 ffi('read_open_fd', [c_archive_p, c_int, c_size_t], c_int, check_int)
 ffi('read_open_filename_w', [c_archive_p, c_wchar_p, c_size_t],
     c_int, check_int)

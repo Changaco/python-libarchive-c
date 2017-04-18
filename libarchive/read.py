@@ -1,11 +1,12 @@
 from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
-from ctypes import cast, c_void_p
+from ctypes import cast, c_void_p, POINTER, create_string_buffer
 from os import fstat, stat
 
 from . import ffi
-from .ffi import ARCHIVE_EOF
+from .ffi import (ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK,
+                  VOID_CB, page_size)
 from .entry import ArchiveEntry, new_archive_entry
 
 
@@ -41,6 +42,38 @@ def new_archive_read(format_name='all', filter_name='all'):
         yield archive_p
     finally:
         ffi.read_free(archive_p)
+
+
+@contextmanager
+def custom_reader(
+        readinto_func, format_name, filter_name='all',
+        open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+        archive_read_class=ArchiveRead
+):
+
+    # cache a buffer here - we need something to last after the callback returns
+    buf = create_string_buffer(block_size)
+
+    def read_cb_internal(archive_p, context, bufptr):
+        # readinto buf, returns number of bytes read
+        length = readinto_func(buf)
+
+        # turn our string data into a void * we can pass back
+        void_p = cast(buf, c_void_p)
+
+        # decipher our pointer type, then set return buffer pointer
+        buf_p = cast(bufptr, POINTER(c_void_p))
+        buf_p[0] = void_p
+
+        return length
+
+    open_cb = OPEN_CALLBACK(open_func)
+    read_cb = READ_CALLBACK(read_cb_internal)
+    close_cb = CLOSE_CALLBACK(close_func)
+
+    with new_archive_read(format_name, filter_name) as archive_p:
+        ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
+        yield archive_read_class(archive_p)
 
 
 @contextmanager

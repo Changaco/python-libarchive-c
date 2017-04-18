@@ -1,6 +1,7 @@
 """Test reading, writing and extracting archives."""
 
 from __future__ import division, print_function, unicode_literals
+import io
 
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
@@ -79,8 +80,7 @@ def test_files(tmpdir):
         assert tree2 == tree
 
 
-def test_custom_writer():
-
+def test_custom():
     # Collect information on what should be in the archive
     tree = treestat('libarchive')
 
@@ -95,9 +95,13 @@ def test_custom_writer():
         archive.add_files('libarchive/')
         pass
 
-    # Read the archive and check that the data is correct
+    # the custom_reader needs a read function, so we'll use
+    # BytesIO to provide that from our in-memory buf
     buf = b''.join(blocks)
-    with libarchive.memory_reader(buf) as archive:
+    reader = io.BytesIO(buf)
+
+    # Read the archive and check that the data is correct
+    with libarchive.custom_reader(reader.readinto, 'zip') as archive:
         check_archive(archive, tree)
 
 
