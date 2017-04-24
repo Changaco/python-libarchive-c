@@ -12,7 +12,8 @@
     "mode": "rwxrwxr-x", 
     "mtime": 1381752672, 
     "path": "a/", 
-    "size": 0
+    "size": 0, 
+    "uid": 0
   }, 
   {
     "isblk": false, 
@@ -27,6 +28,7 @@
     "mode": "rw-rw-r--", 
     "mtime": 1268681860, 
     "path": "a/gru\u0308n.png", 
-    "size": 362
+    "size": 362, 
+    "uid": 0
   }
 ]

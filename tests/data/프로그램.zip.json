@@ -12,7 +12,8 @@
     "mode": "rw-rw-r--", 
     "mtime": 1390485689, 
     "path": "hello.txt", 
-    "size": 14
+    "size": 14, 
+    "uid": 502
   }, 
   {
     "isblk": false, 
@@ -27,6 +28,7 @@
     "mode": "rw-rw-r--", 
     "mtime": 1390485651, 
     "path": "\ud504\ub85c\uadf8\ub7a8.txt", 
-    "size": 13
+    "size": 13, 
+    "uid": 502
   }
 ]

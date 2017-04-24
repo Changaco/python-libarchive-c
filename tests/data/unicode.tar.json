@@ -12,7 +12,8 @@
     "mode": "rwx------", 
     "mtime": 1319027321, 
     "path": "2859/", 
-    "size": 0
+    "size": 0, 
+    "uid": 500
   }, 
   {
     "isblk": false, 
@@ -27,7 +28,8 @@
     "mode": "rwx------", 
     "mtime": 1319027194, 
     "path": "2859/Copy of h\u00e0nz\u00ec-somefile.txt", 
-    "size": 0
+    "size": 0, 
+    "uid": 500
   }, 
   {
     "isblk": false, 
@@ -42,6 +44,7 @@
     "mode": "rwx------", 
     "mtime": 1319027194, 
     "path": "2859/h\u00e0nz\u00ec?-somefile.txt ", 
-    "size": 0
+    "size": 0, 
+    "uid": 500
   }
 ]

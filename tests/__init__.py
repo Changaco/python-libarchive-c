@@ -63,6 +63,7 @@ def get_entries(location):
                 'ischr': entry.ischr,
                 'isfifo': entry.isfifo,
                 'isdev': entry.isdev,
+                'uid': entry.uid,
             }
 
 
@@ -96,6 +97,7 @@ def get_tarinfos(location):
                 'ischr': entry.ischr(),
                 'isfifo': entry.isfifo(),
                 'isdev': entry.isdev(),
+                'uid': entry.uid,
             }
 
 
