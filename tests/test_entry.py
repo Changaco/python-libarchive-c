@@ -25,9 +25,13 @@ def test_entry_properties():
     with memory_writer(buf, 'gnutar') as archive:
         archive.add_files('README.rst')
 
+    readme_stat = stat('README.rst')
+
     with memory_reader(buf) as archive:
         for entry in archive:
-            assert entry.mode == stat('README.rst')[0]
+            assert entry.uid == readme_stat.st_uid
+            assert entry.gid == readme_stat.st_gid
+            assert entry.mode == readme_stat.st_mode
             assert not entry.isblk
             assert not entry.ischr
             assert not entry.isdir
@@ -81,7 +85,7 @@ def check_entries(test_file, regen=False, ignore=''):
     if regen:
         entries = list(get_entries(test_file))
         with open(fixture_file, 'w', encoding='UTF-8') as ex:
-            json.dump(entries, ex, indent=2)
+            json.dump(entries, ex, indent=2, sort_keys=True)
     with open(fixture_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
     actual = list(get_entries(test_file))
