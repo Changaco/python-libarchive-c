@@ -1,5 +1,6 @@
 [
   {
+    "gid": 513, 
     "isblk": false, 
     "ischr": false, 
     "isdev": false, 
@@ -16,6 +17,7 @@
     "uid": 500
   }, 
   {
+    "gid": 513, 
     "isblk": false, 
     "ischr": false, 
     "isdev": false, 
@@ -32,6 +34,7 @@
     "uid": 500
   }, 
   {
+    "gid": 513, 
     "isblk": false, 
     "ischr": false, 
     "isdev": false, 

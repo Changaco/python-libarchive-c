@@ -1,5 +1,6 @@
 [
   {
+    "gid": 1000, 
     "isblk": false, 
     "ischr": false, 
     "isdev": false, 
@@ -16,6 +17,7 @@
     "uid": 1000
   }, 
   {
+    "gid": 1000, 
     "isblk": false, 
     "ischr": false, 
     "isdev": false, 

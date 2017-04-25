@@ -64,6 +64,7 @@ def get_entries(location):
                 'isfifo': entry.isfifo,
                 'isdev': entry.isdev,
                 'uid': entry.uid,
+                'gid': entry.gid
             }
 
 
@@ -98,6 +99,7 @@ def get_tarinfos(location):
                 'isfifo': entry.isfifo(),
                 'isdev': entry.isdev(),
                 'uid': entry.uid,
+                'gid': entry.gid
             }
 
 
