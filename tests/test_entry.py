@@ -81,7 +81,7 @@ def check_entries(test_file, regen=False, ignore=''):
     if regen:
         entries = list(get_entries(test_file))
         with open(fixture_file, 'w', encoding='UTF-8') as ex:
-            json.dump(entries, ex, indent=2)
+            json.dump(entries, ex, indent=2, sort_keys=True)
     with open(fixture_file, encoding='UTF-8') as ex:
         expected = json.load(ex)
     actual = list(get_entries(test_file))
