@@ -28,6 +28,14 @@ class ArchiveEntry(object):
     def filetype(self):
         return ffi.entry_filetype(self._entry_p)
 
+    @property
+    def uid(self):
+        return ffi.entry_uid(self._entry_p)
+
+    @property
+    def gid(self):
+        return ffi.entry_gid(self._entry_p)
+
     def get_blocks(self, block_size=ffi.page_size):
         archive_p = self._archive_p
         buf = create_string_buffer(block_size)

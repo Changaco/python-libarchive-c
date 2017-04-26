@@ -126,6 +126,8 @@ ffi('entry_symlink', [c_archive_entry_p], c_char_p)
 ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
+ffi('entry_uid', [c_archive_entry_p], c_longlong)
+ffi('entry_gid', [c_archive_entry_p], c_longlong)
 
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
 ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
