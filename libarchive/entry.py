@@ -15,6 +15,13 @@ def new_archive_entry():
         ffi.entry_free(entry_p)
 
 
+def format_time(seconds, nanos):
+    """ return float of seconds.nanos when nanos set, or seconds when not """
+    if nanos:
+        return float(seconds) + float(nanos) / 1000000000.0
+    return int(seconds)
+
+
 class ArchiveEntry(object):
 
     def __init__(self, archive_p, entry_p):
@@ -99,7 +106,9 @@ class ArchiveEntry(object):
 
     @property
     def atime(self):
-        return ffi.entry_atime(self._entry_p)
+        sec_val = ffi.entry_atime(self._entry_p)
+        nsec_val = ffi.entry_atime_nsec(self._entry_p)
+        return format_time(sec_val, nsec_val)
 
     def set_atime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_atime(self._entry_p,
@@ -107,7 +116,9 @@ class ArchiveEntry(object):
 
     @property
     def mtime(self):
-        return ffi.entry_mtime(self._entry_p)
+        sec_val = ffi.entry_mtime(self._entry_p)
+        nsec_val = ffi.entry_mtime_nsec(self._entry_p)
+        return format_time(sec_val, nsec_val)
 
     def set_mtime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_mtime(self._entry_p,
@@ -115,7 +126,9 @@ class ArchiveEntry(object):
 
     @property
     def ctime(self):
-        return ffi.entry_ctime(self._entry_p)
+        sec_val = ffi.entry_ctime(self._entry_p)
+        nsec_val = ffi.entry_ctime_nsec(self._entry_p)
+        return format_time(sec_val, nsec_val)
 
     def set_ctime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_ctime(self._entry_p,
