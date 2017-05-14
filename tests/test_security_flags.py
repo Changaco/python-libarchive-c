@@ -5,6 +5,7 @@ import pytest
 import os
 
 from libarchive import extract_file
+from libarchive.ffi import version_number
 from libarchive.extract import EXTRACT_SECURE_NOABSOLUTEPATHS, \
     EXTRACT_SECURE_NODOTDOT
 from libarchive.exception import ArchiveError
@@ -28,5 +29,8 @@ def test_no_dot_dot():
 
 
 def test_absolute():
-    run_test(EXTRACT_SECURE_NOABSOLUTEPATHS,
-             '/tmp/python-libarchive-c-test-absolute-file')
+    # EXTRACT_SECURE_NOABSOLUTEPATHS was only added in 3.1.900
+    # 3.1.900 -> 3001009
+    if version_number() >= 3001009:
+        run_test(EXTRACT_SECURE_NOABSOLUTEPATHS,
+                 '/tmp/python-libarchive-c-test-absolute-file')
