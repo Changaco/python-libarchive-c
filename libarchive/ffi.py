@@ -252,3 +252,6 @@ ffi('write_fail', [c_archive_p], c_int, check_int)
 
 ffi('write_close', [c_archive_p], c_int, check_int)
 ffi('write_free', [c_archive_p], c_int, check_int)
+
+# library version
+ffi('version_number', [], c_int, check_int)
