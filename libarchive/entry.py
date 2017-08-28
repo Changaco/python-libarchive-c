@@ -134,6 +134,16 @@ class ArchiveEntry(object):
         return ffi.entry_set_ctime(self._entry_p,
                                    timestamp_sec, timestamp_nsec)
 
+    @property
+    def birthtime(self):
+        sec_val = ffi.entry_birthtime(self._entry_p)
+        nsec_val = ffi.entry_birthtime_nsec(self._entry_p)
+        return format_time(sec_val, nsec_val)
+
+    def set_birthtime(self, timestamp_sec, timestamp_nsec):
+        return ffi.entry_set_birthtime(self._entry_p,
+                                       timestamp_sec, timestamp_nsec)
+
     def _getpathname(self):
         return (ffi.entry_pathname_w(self._entry_p) or
                 ffi.entry_pathname(self._entry_p))
