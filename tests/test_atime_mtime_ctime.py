@@ -116,3 +116,63 @@ def test_file_time_setters(archfmt, timefmt, tmpdir):
             assert entry.atime == time_check(atimestamp, timefmt)
             assert entry.mtime == time_check(mtimestamp, timefmt)
             assert entry.ctime == time_check(ctimestamp, timefmt)
+
+
+@pytest.mark.parametrize('archfmt,timefmt', [('pax', float)])
+def test_file_birthtime_setter(archfmt, timefmt, tmpdir):
+    # Create an archive of our libarchive/ directory
+    archive_path = tmpdir.join('/test.{0}'.format(archfmt)).strpath
+    archive2_path = tmpdir.join('/test2.{0}'.format(archfmt)).strpath
+
+    btimestamp = (1482144740, 495628118)
+    atimestamp = (1482144741, 495628118)
+    mtimestamp = (1482155417, 659017086)
+    ctimestamp = (1482145211, 536858081)
+    with file_writer(archive_path, archfmt) as archive1:
+        archive1.add_files('libarchive/')
+
+    with file_reader(archive_path) as archive1:
+        with file_writer(archive2_path, archfmt) as archive2:
+            for entry in archive1:
+                entry.set_birthtime(*btimestamp)
+                entry.set_atime(*atimestamp)
+                entry.set_mtime(*mtimestamp)
+                entry.set_ctime(*ctimestamp)
+                archive2.add_entries([entry])
+
+    with file_reader(archive2_path) as archive2:
+        for entry in archive2:
+            assert entry.birthtime == time_check(btimestamp, timefmt)
+            assert entry.atime == time_check(atimestamp, timefmt)
+            assert entry.mtime == time_check(mtimestamp, timefmt)
+            assert entry.ctime == time_check(ctimestamp, timefmt)
+
+
+@pytest.mark.parametrize('archfmt,timefmt', [('pax', float)])
+def test_memory_birthtime_setter(archfmt, timefmt):
+    # Create an archive of our libarchive/ directory
+
+    btimestamp = (1482144740, 495628118)
+    atimestamp = (1482144741, 495628118)
+    mtimestamp = (1482155417, 659017086)
+    ctimestamp = (1482145211, 536858081)
+    buf = bytes(bytearray(1000000))
+    with memory_writer(buf, archfmt) as archive1:
+        archive1.add_files('libarchive/')
+
+    buf2 = bytes(bytearray(1000000))
+    with memory_reader(buf) as archive1:
+        with memory_writer(buf2, archfmt) as archive2:
+            for entry in archive1:
+                entry.set_birthtime(*btimestamp)
+                entry.set_atime(*atimestamp)
+                entry.set_mtime(*mtimestamp)
+                entry.set_ctime(*ctimestamp)
+                archive2.add_entries([entry])
+
+    with memory_reader(buf2) as archive2:
+        for entry in archive2:
+            assert entry.birthtime == time_check(btimestamp, timefmt)
+            assert entry.atime == time_check(atimestamp, timefmt)
+            assert entry.mtime == time_check(mtimestamp, timefmt)
+            assert entry.ctime == time_check(ctimestamp, timefmt)
