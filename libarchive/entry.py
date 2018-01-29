@@ -49,6 +49,8 @@ class ArchiveEntry(object):
         read = ffi.read_data
         while 1:
             r = read(archive_p, buf, block_size)
+            if r < 0:
+                ffi.archive_error(archive_p, r)
             if r == 0:
                 break
             yield buf.raw[0:r]
