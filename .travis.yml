@@ -16,15 +16,15 @@ env:
 before_install:
   - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
   - "if [ ! -e $LIBARCHIVE ]; then
-        wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz &&
-        tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 &&
+        wget http://libarchive.org/downloads/libarchive-3.3.2.tar.gz &&
+        tar -xf libarchive-3.3.2.tar.gz && cd libarchive-3.3.2 &&
         ./configure --prefix=/opt/python-libarchive-c --disable-bsdcpio --disable-bsdtar &&
         make && sudo make install && cd .. ;
     fi"
 
 install: pip install tox
 
-script: tox
+script: tox -e py36
 
 notifications:
   email: false
