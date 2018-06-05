@@ -15,8 +15,10 @@ from .ffi import (
 
 
 @contextmanager
-def new_archive_read_disk(path):
+def new_archive_read_disk(path, lookup=False):
     archive_p = read_disk_new()
+    if lookup:
+        ffi.read_disk_set_standard_lookup(archive_p)
     read_disk_open_w(archive_p, path)
     try:
         yield archive_p
@@ -39,7 +41,7 @@ class ArchiveWrite(object):
                 write_data(write_p, block, len(block))
             write_finish_entry(write_p)
 
-    def add_files(self, *paths):
+    def add_files(self, *paths, **kw):
         """Read the given paths from disk and add them to the archive.
         """
         write_p = self._pointer
@@ -51,7 +53,7 @@ class ArchiveWrite(object):
         with new_archive_entry() as entry_p:
             entry = ArchiveEntry(None, entry_p)
             for path in paths:
-                with new_archive_read_disk(path) as read_p:
+                with new_archive_read_disk(path, **kw) as read_p:
                     while 1:
                         r = read_next_header2(read_p, entry_p)
                         if r == ARCHIVE_EOF:
@@ -109,11 +111,15 @@ class ArchiveWrite(object):
 
 
 @contextmanager
-def new_archive_write(format_name, filter_name=None):
+def new_archive_write(format_name, filter_name=None, options=''):
     archive_p = ffi.write_new()
     getattr(ffi, 'write_set_format_'+format_name)(archive_p)
     if filter_name:
         getattr(ffi, 'write_add_filter_'+filter_name)(archive_p)
+    if options:
+        if not isinstance(options, bytes):
+            options = options.encode('utf-8')
+        ffi.write_set_options(archive_p, options)
     try:
         yield archive_p
         ffi.write_close(archive_p)
@@ -128,7 +134,7 @@ def new_archive_write(format_name, filter_name=None):
 def custom_writer(
         write_func, format_name, filter_name=None,
         open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_write_class=ArchiveWrite
+        archive_write_class=ArchiveWrite, options=''
 ):
 
     def write_cb_internal(archive_p, context, buffer_, length):
@@ -139,7 +145,7 @@ def custom_writer(
     write_cb = WRITE_CALLBACK(write_cb_internal)
     close_cb = CLOSE_CALLBACK(close_func)
 
-    with new_archive_write(format_name, filter_name) as archive_p:
+    with new_archive_write(format_name, filter_name, options) as archive_p:
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
         ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
@@ -148,9 +154,10 @@ def custom_writer(
 
 @contextmanager
 def fd_writer(
-        fd, format_name, filter_name=None, archive_write_class=ArchiveWrite
+        fd, format_name, filter_name=None,
+        archive_write_class=ArchiveWrite, options=''
 ):
-    with new_archive_write(format_name, filter_name) as archive_p:
+    with new_archive_write(format_name, filter_name, options) as archive_p:
         ffi.write_open_fd(archive_p, fd)
         yield archive_write_class(archive_p)
 
@@ -158,18 +165,19 @@ def fd_writer(
 @contextmanager
 def file_writer(
         filepath, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite
+        archive_write_class=ArchiveWrite, options=''
 ):
-    with new_archive_write(format_name, filter_name) as archive_p:
+    with new_archive_write(format_name, filter_name, options) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
         yield archive_write_class(archive_p)
 
 
 @contextmanager
 def memory_writer(
-        buf, format_name, filter_name=None, archive_write_class=ArchiveWrite
+        buf, format_name, filter_name=None,
+        archive_write_class=ArchiveWrite, options=''
 ):
-    with new_archive_write(format_name, filter_name) as archive_p:
+    with new_archive_write(format_name, filter_name, options) as archive_p:
         used = byref(c_size_t())
         buf_p = cast(buf, c_void_p)
         ffi.write_open_memory(archive_p, buf_p, len(buf), used)

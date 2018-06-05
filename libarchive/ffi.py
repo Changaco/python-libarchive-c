@@ -209,6 +209,7 @@ ffi('read_data_skip', [c_archive_p], c_int, check_int)
 # archive_write
 
 ffi('write_new', [], c_archive_p, check_null)
+ffi('write_set_options', [c_archive_p, c_char_p], c_int, check_int)
 
 ffi('write_disk_new', [], c_archive_p, check_null)
 ffi('write_disk_set_options', [c_archive_p, c_int], c_int, check_int)
