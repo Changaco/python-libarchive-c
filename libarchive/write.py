@@ -10,13 +10,24 @@ from .ffi import (
     DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
     page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
     read_next_header2, read_disk_descend, read_free, write_header, write_data,
-    write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm
+    write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm,
+    read_disk_set_behavior
 )
 
 
+READDISK_RESTORE_ATIME = 0x0001
+READDISK_HONOR_NODUMP = 0x0002
+READDISK_MAC_COPYFILE = 0x0004
+READDISK_NO_TRAVERSE_MOUNTS = 0x0008
+READDISK_NO_XATTR = 0x0010
+READDISK_NO_ACL = 0x0020
+READDISK_NO_FFLAGS = 0x0040
+
+
 @contextmanager
-def new_archive_read_disk(path, lookup=False):
+def new_archive_read_disk(path, flags=0, lookup=False):
     archive_p = read_disk_new()
+    read_disk_set_behavior(archive_p, flags)
     if lookup:
         ffi.read_disk_set_standard_lookup(archive_p)
     read_disk_open_w(archive_p, path)

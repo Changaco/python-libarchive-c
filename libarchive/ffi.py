@@ -193,6 +193,7 @@ ffi('read_free', [c_archive_p], c_int, check_int)
 # archive_read_disk
 
 ffi('read_disk_new', [], c_archive_p, check_null)
+ffi('read_disk_set_behavior', [c_archive_p, c_int], c_int, check_int)
 ffi('read_disk_set_standard_lookup', [c_archive_p], c_int, check_int)
 ffi('read_disk_open', [c_archive_p, c_char_p], c_int, check_int)
 ffi('read_disk_open_w', [c_archive_p, c_wchar_p], c_int, check_int)
