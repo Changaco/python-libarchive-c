@@ -150,7 +150,7 @@ ffi('read_new', [], c_archive_p, check_null)
 
 READ_FORMATS = set((
     '7zip', 'all', 'ar', 'cab', 'cpio', 'empty', 'iso9660', 'lha', 'mtree',
-    'rar', 'raw', 'tar', 'xar', 'zip'
+    'rar', 'raw', 'tar', 'xar', 'zip', 'warc'
 ))
 for f_name in list(READ_FORMATS):
     try:
@@ -161,7 +161,7 @@ for f_name in list(READ_FORMATS):
 
 READ_FILTERS = set((
     'all', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
-    'lzop', 'none', 'rpm', 'uu', 'xz'
+    'lzop', 'none', 'rpm', 'uu', 'xz', 'lz4'
 ))
 for f_name in list(READ_FILTERS):
     try:
@@ -207,7 +207,7 @@ ffi('write_disk_set_options', [c_archive_p, c_int], c_int, check_int)
 WRITE_FORMATS = set((
     '7zip', 'ar_bsd', 'ar_svr4', 'cpio', 'cpio_newc', 'gnutar', 'iso9660',
     'mtree', 'mtree_classic', 'pax', 'pax_restricted', 'shar', 'shar_dump',
-    'ustar', 'v7tar', 'xar', 'zip'
+    'ustar', 'v7tar', 'xar', 'zip', 'warc'
 ))
 for f_name in list(WRITE_FORMATS):
     try:
@@ -218,7 +218,7 @@ for f_name in list(WRITE_FORMATS):
 
 WRITE_FILTERS = set((
     'b64encode', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
-    'lzop', 'uuencode', 'xz'
+    'lzop', 'uuencode', 'xz', 'lz4'
 ))
 for f_name in list(WRITE_FILTERS):
     try:
