@@ -96,8 +96,11 @@ def memory_reader(buf, format_name='all', filter_name='all'):
 
 
 @contextmanager
-def stream_reader(stream, format_name='all', filter_name='all', block_size=page_size):
-    """Read an archive from a stream (an object supporting the `readinto` method).
+def stream_reader(stream, format_name='all', filter_name='all',
+                  block_size=page_size):
+    """Read an archive from a stream.
+
+    The `stream` object must support the standard `readinto` method.
     """
     buf = create_string_buffer(block_size)
     buf_p = cast(buf, c_void_p)
