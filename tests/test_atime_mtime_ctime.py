@@ -3,8 +3,7 @@ from __future__ import division, print_function, unicode_literals
 from copy import copy
 from os import stat
 
-from libarchive import (file_reader, file_writer, memory_reader,
-                        memory_writer)
+from libarchive import (file_reader, file_writer, memory_reader, memory_writer)
 
 import pytest
 
@@ -66,15 +65,17 @@ def test_file_atime_ctime(archfmt, timefmt, tmpdir):
 
 @pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_memory_time_setters(archfmt, timefmt):
-    # Create an archive of our libarchive/ directory
+    has_birthtime = archfmt != 'zip'
 
-    atimestamp = (1482144741, 495628118)
-    mtimestamp = (1482155417, 659017086)
-    ctimestamp = (1482145211, 536858081)
+    # Create an archive of our libarchive/ directory
     buf = bytes(bytearray(1000000))
     with memory_writer(buf, archfmt) as archive1:
         archive1.add_files('libarchive/')
 
+    atimestamp = (1482144741, 495628118)
+    mtimestamp = (1482155417, 659017086)
+    ctimestamp = (1482145211, 536858081)
+    btimestamp = (1482144740, 495628118)
     buf2 = bytes(bytearray(1000000))
     with memory_reader(buf) as archive1:
         with memory_writer(buf2, archfmt) as archive2:
@@ -82,6 +83,8 @@ def test_memory_time_setters(archfmt, timefmt):
                 entry.set_atime(*atimestamp)
                 entry.set_mtime(*mtimestamp)
                 entry.set_ctime(*ctimestamp)
+                if has_birthtime:
+                    entry.set_birthtime(*btimestamp)
                 archive2.add_entries([entry])
 
     with memory_reader(buf2) as archive2:
@@ -89,26 +92,32 @@ def test_memory_time_setters(archfmt, timefmt):
             assert entry.atime == time_check(atimestamp, timefmt)
             assert entry.mtime == time_check(mtimestamp, timefmt)
             assert entry.ctime == time_check(ctimestamp, timefmt)
+            if has_birthtime:
+                assert entry.birthtime == time_check(btimestamp, timefmt)
 
 
 @pytest.mark.parametrize('archfmt,timefmt', [('zip', int), ('pax', float)])
 def test_file_time_setters(archfmt, timefmt, tmpdir):
+    has_birthtime = archfmt != 'zip'
+
     # Create an archive of our libarchive/ directory
     archive_path = tmpdir.join('/test.{0}'.format(archfmt)).strpath
     archive2_path = tmpdir.join('/test2.{0}'.format(archfmt)).strpath
+    with file_writer(archive_path, archfmt) as archive1:
+        archive1.add_files('libarchive/')
 
     atimestamp = (1482144741, 495628118)
     mtimestamp = (1482155417, 659017086)
     ctimestamp = (1482145211, 536858081)
-    with file_writer(archive_path, archfmt) as archive1:
-        archive1.add_files('libarchive/')
-
+    btimestamp = (1482144740, 495628118)
     with file_reader(archive_path) as archive1:
         with file_writer(archive2_path, archfmt) as archive2:
             for entry in archive1:
                 entry.set_atime(*atimestamp)
                 entry.set_mtime(*mtimestamp)
                 entry.set_ctime(*ctimestamp)
+                if has_birthtime:
+                    entry.set_birthtime(*btimestamp)
                 archive2.add_entries([entry])
 
     with file_reader(archive2_path) as archive2:
@@ -116,63 +125,5 @@ def test_file_time_setters(archfmt, timefmt, tmpdir):
             assert entry.atime == time_check(atimestamp, timefmt)
             assert entry.mtime == time_check(mtimestamp, timefmt)
             assert entry.ctime == time_check(ctimestamp, timefmt)
-
-
-@pytest.mark.parametrize('archfmt,timefmt', [('pax', float)])
-def test_file_birthtime_setter(archfmt, timefmt, tmpdir):
-    # Create an archive of our libarchive/ directory
-    archive_path = tmpdir.join('/test.{0}'.format(archfmt)).strpath
-    archive2_path = tmpdir.join('/test2.{0}'.format(archfmt)).strpath
-
-    btimestamp = (1482144740, 495628118)
-    atimestamp = (1482144741, 495628118)
-    mtimestamp = (1482155417, 659017086)
-    ctimestamp = (1482145211, 536858081)
-    with file_writer(archive_path, archfmt) as archive1:
-        archive1.add_files('libarchive/')
-
-    with file_reader(archive_path) as archive1:
-        with file_writer(archive2_path, archfmt) as archive2:
-            for entry in archive1:
-                entry.set_birthtime(*btimestamp)
-                entry.set_atime(*atimestamp)
-                entry.set_mtime(*mtimestamp)
-                entry.set_ctime(*ctimestamp)
-                archive2.add_entries([entry])
-
-    with file_reader(archive2_path) as archive2:
-        for entry in archive2:
-            assert entry.birthtime == time_check(btimestamp, timefmt)
-            assert entry.atime == time_check(atimestamp, timefmt)
-            assert entry.mtime == time_check(mtimestamp, timefmt)
-            assert entry.ctime == time_check(ctimestamp, timefmt)
-
-
-@pytest.mark.parametrize('archfmt,timefmt', [('pax', float)])
-def test_memory_birthtime_setter(archfmt, timefmt):
-    # Create an archive of our libarchive/ directory
-
-    btimestamp = (1482144740, 495628118)
-    atimestamp = (1482144741, 495628118)
-    mtimestamp = (1482155417, 659017086)
-    ctimestamp = (1482145211, 536858081)
-    buf = bytes(bytearray(1000000))
-    with memory_writer(buf, archfmt) as archive1:
-        archive1.add_files('libarchive/')
-
-    buf2 = bytes(bytearray(1000000))
-    with memory_reader(buf) as archive1:
-        with memory_writer(buf2, archfmt) as archive2:
-            for entry in archive1:
-                entry.set_birthtime(*btimestamp)
-                entry.set_atime(*atimestamp)
-                entry.set_mtime(*mtimestamp)
-                entry.set_ctime(*ctimestamp)
-                archive2.add_entries([entry])
-
-    with memory_reader(buf2) as archive2:
-        for entry in archive2:
-            assert entry.birthtime == time_check(btimestamp, timefmt)
-            assert entry.atime == time_check(atimestamp, timefmt)
-            assert entry.mtime == time_check(mtimestamp, timefmt)
-            assert entry.ctime == time_check(ctimestamp, timefmt)
+            if has_birthtime:
+                assert entry.birthtime == time_check(btimestamp, timefmt)
