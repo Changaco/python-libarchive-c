@@ -45,6 +45,8 @@ class ArchiveWrite(object):
 
     def add_files(self, *paths, **kw):
         """Read the given paths from disk and add them to the archive.
+
+        The keyword arguments (`**kw`) are passed to `new_archive_read_disk`.
         """
         write_p = self._pointer
 
