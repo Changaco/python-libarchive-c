@@ -1,5 +1,10 @@
 language: python
-python: "3.6"
+matrix:
+  include:
+    - python: 3.5
+      env: TOXENV=py27,py34,py35
+    - python: 3.6
+      env: TOXENV=py36
 
 branches:
   only:
@@ -16,8 +21,8 @@ env:
 before_install:
   - sudo apt-get install -y zlib1g-dev liblzma-dev libbz2-dev libxml2-dev nettle-dev libattr1-dev libacl1-dev
   - "if [ ! -e $LIBARCHIVE ]; then
-        wget http://libarchive.org/downloads/libarchive-3.1.2.tar.gz &&
-        tar -xf libarchive-3.1.2.tar.gz && cd libarchive-3.1.2 &&
+        wget http://libarchive.org/downloads/libarchive-3.3.2.tar.gz &&
+        tar -xf libarchive-3.3.2.tar.gz && cd libarchive-3.3.2 &&
         ./configure --prefix=/opt/python-libarchive-c --disable-bsdcpio --disable-bsdtar &&
         make && sudo make install && cd .. ;
     fi"
