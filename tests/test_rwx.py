@@ -80,28 +80,18 @@ def test_files(tmpdir):
         assert tree2 == tree
 
 
-def test_custom():
+def test_custom_writer_and_stream_reader():
     # Collect information on what should be in the archive
     tree = treestat('libarchive')
 
     # Create an archive of our libarchive/ directory
-    blocks = []
-
-    def write_cb(data):
-        blocks.append(data[:])
-        return len(data)
-
-    with libarchive.custom_writer(write_cb, 'zip') as archive:
+    stream = io.BytesIO()
+    with libarchive.custom_writer(stream.write, 'zip') as archive:
         archive.add_files('libarchive/')
-        pass
-
-    # the custom_reader needs a read function, so we'll use
-    # BytesIO to provide that from our in-memory buf
-    buf = b''.join(blocks)
-    reader = io.BytesIO(buf)
+    stream.seek(0)
 
     # Read the archive and check that the data is correct
-    with libarchive.custom_reader(reader.readinto, 'zip') as archive:
+    with libarchive.stream_reader(stream, 'zip') as archive:
         check_archive(archive, tree)
 
 
