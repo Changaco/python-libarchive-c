@@ -1,11 +1,12 @@
 from __future__ import division, print_function, unicode_literals
 
 from contextlib import contextmanager
-from ctypes import cast, c_void_p
+from ctypes import cast, c_void_p, POINTER, create_string_buffer
 from os import fstat, stat
 
 from . import ffi
-from .ffi import ARCHIVE_EOF
+from .ffi import (ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK,
+                  VOID_CB, page_size)
 from .entry import ArchiveEntry, new_archive_entry
 
 
@@ -44,6 +45,22 @@ def new_archive_read(format_name='all', filter_name='all'):
 
 
 @contextmanager
+def custom_reader(
+        read_func, format_name='all', filter_name='all',
+        open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+        archive_read_class=ArchiveRead
+):
+    """Read an archive using a custom function.
+    """
+    open_cb = OPEN_CALLBACK(open_func)
+    read_cb = READ_CALLBACK(read_func)
+    close_cb = CLOSE_CALLBACK(close_func)
+    with new_archive_read(format_name, filter_name) as archive_p:
+        ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
+        yield archive_read_class(archive_p)
+
+
+@contextmanager
 def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
     """Read an archive from a file descriptor.
     """
@@ -75,4 +92,28 @@ def memory_reader(buf, format_name='all', filter_name='all'):
     """
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open_memory(archive_p, cast(buf, c_void_p), len(buf))
+        yield ArchiveRead(archive_p)
+
+
+@contextmanager
+def stream_reader(stream, format_name='all', filter_name='all', block_size=page_size):
+    """Read an archive from a stream (an object supporting the `readinto` method).
+    """
+    buf = create_string_buffer(block_size)
+    buf_p = cast(buf, c_void_p)
+
+    def read_func(archive_p, context, ptrptr):
+        # readinto the buffer, returns number of bytes read
+        length = stream.readinto(buf)
+        # write the address of the buffer into the pointer
+        ptrptr = cast(ptrptr, POINTER(c_void_p))
+        ptrptr[0] = buf_p
+        # tell libarchive how much data was written into the buffer
+        return length
+
+    open_cb = OPEN_CALLBACK(VOID_CB)
+    read_cb = READ_CALLBACK(read_func)
+    close_cb = CLOSE_CALLBACK(VOID_CB)
+    with new_archive_read(format_name, filter_name) as archive_p:
+        ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
