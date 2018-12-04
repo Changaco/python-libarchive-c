@@ -56,22 +56,22 @@ You can also find more thorough examples in the ``tests/`` directory.
 MacOS Notes
 ===========
 MacOS ships with an old version of libarchive (/usr/lib/libarchive.dylib) and python-libarchive-c will by default try and use it.
-If you want to use python-libarchive-c on MacOS, you need to install a newer version of this lib. Homebrew can do this:
+If you want to use python-libarchive-c on MacOS, you need to install a newer version of this lib. Homebrew can do this::
 
     $ brew install libarchive
 
 This will install it in a path like /usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib .
 
-Once installed, set the environment variable LIBARCHIVE to this path:
+Once installed, set the environment variable LIBARCHIVE to this path::
 
     export LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib
     python
 
-or
+or alternatively inline with starting Python::
 
     LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib python
 
-or
+or inside the script itself::
 
     python
     >>> import os
