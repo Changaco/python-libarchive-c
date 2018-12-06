@@ -14,10 +14,20 @@ Installation
 Compatibility
 =============
 
+python
+------
+
 python-libarchive-c is currently tested with python 2.7, 3.4, 3.5, and 3.6.
 
 If you find an incompatibility with older versions you can send us a small patch,
 but we won't accept big changes.
+
+libarchive
+----------
+
+python-libarchive-c may not work properly with obsolete versions of libarchive such as the ones included in MacOS. In that case you can install a recent version of libarchive (e.g. with ``brew install libarchive`` on MacOS) and use the ``LIBARCHIVE`` environment variable to point python-libarchive-c to it::
+
+    export LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib
 
 Usage
 =====
@@ -53,31 +63,6 @@ file descriptor, and ``custom_writer`` sends the data to a callback function.
 
 You can also find more thorough examples in the ``tests/`` directory.
 
-MacOS Notes
-===========
-MacOS ships with an old version of libarchive (/usr/lib/libarchive.dylib) and python-libarchive-c will by default try and use it.
-If you want to use python-libarchive-c on MacOS, you need to install a newer version of this lib. Homebrew can do this::
-
-    $ brew install libarchive
-
-This will install it in a path like /usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib .
-
-Once installed, set the environment variable LIBARCHIVE to this path::
-
-    export LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib
-    python
-
-or alternatively inline with starting Python::
-
-    LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib python
-
-or inside the script itself::
-
-    python
-    >>> import os
-    >>> os.environ['LIBARCHIVE']='/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib'
-
-    
 License
 =======
 
