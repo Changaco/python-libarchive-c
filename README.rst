@@ -14,10 +14,20 @@ Installation
 Compatibility
 =============
 
+python
+------
+
 python-libarchive-c is currently tested with python 2.7, 3.4, 3.5, and 3.6.
 
 If you find an incompatibility with older versions you can send us a small patch,
 but we won't accept big changes.
+
+libarchive
+----------
+
+python-libarchive-c may not work properly with obsolete versions of libarchive such as the ones included in MacOS. In that case you can install a recent version of libarchive (e.g. with ``brew install libarchive`` on MacOS) and use the ``LIBARCHIVE`` environment variable to point python-libarchive-c to it::
+
+    export LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib
 
 Usage
 =====
