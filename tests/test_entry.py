@@ -3,10 +3,12 @@
 from __future__ import division, print_function, unicode_literals
 
 from codecs import open
+import unicodedata
 import json
 import locale
 from os import environ, stat
 from os.path import join
+import sys
 
 from libarchive import memory_reader, memory_writer
 
@@ -93,4 +95,13 @@ def check_entries(test_file, regen=False, ignore=''):
         for key in ignore:
             e1.pop(key)
             e2.pop(key)
+        # Normalize all unicode (can vary depending on the system)
+        for d in (e1, e2):
+            for key in d:
+                if sys.version_info[0] < 3:
+                    IS_UNICODE = isinstance(d[key], unicode)  # noqa: F821
+                else:
+                    IS_UNICODE = isinstance(d[key], str)
+                if IS_UNICODE:
+                    d[key] = unicodedata.normalize('NFC', d[key])
         assert e1 == e2
