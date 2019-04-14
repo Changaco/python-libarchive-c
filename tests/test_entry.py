@@ -3,12 +3,12 @@
 from __future__ import division, print_function, unicode_literals
 
 from codecs import open
-import unicodedata
 import json
 import locale
 from os import environ, stat
 from os.path import join
 import sys
+import unicodedata
 
 from libarchive import memory_reader, memory_writer
 
