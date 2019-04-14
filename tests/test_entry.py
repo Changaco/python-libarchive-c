@@ -7,13 +7,14 @@ import json
 import locale
 from os import environ, stat
 from os.path import join
-import sys
 import unicodedata
 
 from libarchive import memory_reader, memory_writer
 
 from . import data_dir, get_entries, get_tarinfos
 
+
+text_type = unicode if str is bytes else str  # noqa: F821
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -98,10 +99,6 @@ def check_entries(test_file, regen=False, ignore=''):
         # Normalize all unicode (can vary depending on the system)
         for d in (e1, e2):
             for key in d:
-                if sys.version_info[0] < 3:
-                    IS_UNICODE = isinstance(d[key], unicode)  # noqa: F821
-                else:
-                    IS_UNICODE = isinstance(d[key], str)
-                if IS_UNICODE:
+                if isinstance(d[key], text_type):
                     d[key] = unicodedata.normalize('NFC', d[key])
         assert e1 == e2
