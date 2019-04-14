@@ -84,9 +84,9 @@ class ArchiveWrite(object):
 
         :param entry_path: where entry should be places in archive
         :type entry_path: str
-        :param entry_size: entire size of entry
+        :param entry_size: entire size of entry in bytes
         :type entry_size: int
-        :param entry_data: content of entry
+        :param entry_data: content of entry as a list of byte-like objects
         :type entry_data: iterable
         :param filetype: which type of file: normal, symlink etc.
         should entry be created as

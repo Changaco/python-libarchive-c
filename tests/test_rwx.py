@@ -2,11 +2,15 @@
 
 from __future__ import division, print_function, unicode_literals
 import io
+import sys
+import json
 
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 from libarchive.write import memory_writer
 from mock import patch
+
+import pytest
 
 from . import check_archive, in_dir, treestat
 
@@ -115,10 +119,24 @@ def test_write_not_fail(write_fail_mock):
     assert not write_fail_mock.called
 
 
-def test_adding_entry_from_memory():
-    entry_path = 'this is path'
-    entry_data = 'content'
-    entry_size = len(entry_data)
+@pytest.mark.parametrize(
+    'archfmt,data_bytes',
+    [('zip', b'content'),
+     ('gnutar', 'a_string'.encode()),
+     ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode())])
+def test_adding_entry_from_memory(archfmt, data_bytes):
+    if sys.version_info[0] < 3:
+        string_types = (str, unicode)  # noqa: F821
+    else:
+        string_types = (str,)
+
+    entry_path = 'testfile.data'
+
+    # entry_data must be a list of byte-like objects for maximum compatibility
+    # (Use of other data types can have undesirable side-effects)
+    # entry_size is the total size in bytes of the entry_data items
+    entry_data = [data_bytes]
+    entry_size = sum(len(bdata) for bdata in entry_data)
 
     blocks = []
 
@@ -126,13 +144,20 @@ def test_adding_entry_from_memory():
         blocks.append(data[:])
         return len(data)
 
-    with libarchive.custom_writer(write_callback, 'zip') as archive:
-        archive.add_file_from_memory(entry_path, entry_size, entry_data)
+    with libarchive.custom_writer(write_callback, archfmt) as archive:
+        archive.add_file_from_memory(
+            entry_path, entry_size, entry_data)
 
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
         for archive_entry in memory_archive:
-            assert entry_data.encode() == b''.join(
-                archive_entry.get_blocks()
+            expected = b''.join(
+                [a.encode()
+                 if isinstance(a, string_types)
+                 else a for a in entry_data],
             )
+            actual = b''.join(
+                archive_entry.get_blocks(),
+            )
+            assert expected == actual
             assert archive_entry.path == entry_path
