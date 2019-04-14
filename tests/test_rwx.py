@@ -1,9 +1,10 @@
 """Test reading, writing and extracting archives."""
 
 from __future__ import division, print_function, unicode_literals
+
 import io
-import sys
 import json
+import sys
 
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
