@@ -126,11 +126,6 @@ def test_write_not_fail(write_fail_mock):
      ('gnutar', 'a_string'.encode()),
      ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode())])
 def test_adding_entry_from_memory(archfmt, data_bytes):
-    if sys.version_info[0] < 3:
-        string_types = (str, unicode)  # noqa: F821
-    else:
-        string_types = (str,)
-
     entry_path = 'testfile.data'
 
     # entry_data must be a list of byte-like objects for maximum compatibility
@@ -152,11 +147,7 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
         for archive_entry in memory_archive:
-            expected = b''.join(
-                [a.encode()
-                 if isinstance(a, string_types)
-                 else a for a in entry_data],
-            )
+            expected = b''.join(entry_data)
             actual = b''.join(
                 archive_entry.get_blocks(),
             )
