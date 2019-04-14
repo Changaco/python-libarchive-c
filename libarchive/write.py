@@ -78,7 +78,11 @@ class ArchiveWrite(object):
     def add_file_from_memory(
             self, entry_path, entry_size, entry_data,
             filetype=REGULAR_FILE,
-            permission=DEFAULT_UNIX_PERMISSION
+            permission=DEFAULT_UNIX_PERMISSION,
+            atime=None,
+            mtime=None,
+            ctime=None,
+            birthtime=None,
     ):
         """"Add file from memory to archive.
 
@@ -93,6 +97,14 @@ class ArchiveWrite(object):
         :type filetype: octal number
         :param permission: with which permission should entry be created
         :type permission: octal number
+        :param atime: Last access time
+        :type atime: int seconds or tuple (int seconds, int nanoseconds)
+        :param mtime: Last modified time
+        :type mtime: int seconds or tuple (int seconds, int nanoseconds)
+        :param ctime: Creation time
+        :type ctime: int seconds or tuple (int seconds, int nanoseconds)
+        :param birthtime: Birth time (for archive formats that support it)
+        :type birthtime: int seconds or tuple (int seconds, int nanoseconds)
         """
         archive_pointer = self._pointer
 
@@ -110,6 +122,23 @@ class ArchiveWrite(object):
             entry_set_size(archive_entry_pointer, entry_size)
             entry_set_filetype(archive_entry_pointer, filetype)
             entry_set_perm(archive_entry_pointer, permission)
+
+            if atime is not None:
+                archive_entry.set_atime(*(
+                    (atime, 0)
+                    if isinstance(atime, (int, float)) else atime))
+            if mtime is not None:
+                archive_entry.set_mtime(*(
+                    (mtime, 0)
+                    if isinstance(mtime, (int, float)) else mtime))
+            if ctime is not None:
+                archive_entry.set_ctime(*(
+                    (ctime, 0)
+                    if isinstance(ctime, (int, float)) else ctime))
+            if birthtime is not None:
+                archive_entry.set_birthtime(*(
+                    (birthtime, 0)
+                    if isinstance(birthtime, (int, float)) else birthtime))
             write_header(archive_pointer, archive_entry_pointer)
 
             for chunk in entry_data:

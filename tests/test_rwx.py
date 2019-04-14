@@ -131,12 +131,23 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
 
     blocks = []
 
+    archfmt = 'zip'
+    has_birthtime = archfmt != 'zip'
+
+    atime = (1482144741, 495628118)
+    mtime = (1482155417, 659017086)
+    ctime = (1482145211, 536858081)
+    btime = (1482144740, 495628118) if has_birthtime else None
+
     def write_callback(data):
         blocks.append(data[:])
         return len(data)
 
     with libarchive.custom_writer(write_callback, archfmt) as archive:
-        archive.add_file_from_memory(entry_path, entry_size, entry_data)
+        archive.add_file_from_memory(
+            entry_path, entry_size, entry_data,
+            atime=atime, mtime=mtime, ctime=ctime, birthtime=btime
+        )
 
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
