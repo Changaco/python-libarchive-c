@@ -5,6 +5,8 @@ matrix:
       env: TOXENV=py27,py35
     - python: 3.6
       env: TOXENV=py36
+    - python: 3.7
+      env: TOXENV=py37
 
 branches:
   only:
@@ -35,4 +37,4 @@ notifications:
   email: false
 
 sudo: required
-dist: trusty
+dist: xenial
