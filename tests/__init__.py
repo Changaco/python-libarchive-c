@@ -6,6 +6,10 @@ from os import chdir, getcwd, stat, walk
 from os.path import abspath, dirname, join
 from stat import S_ISREG
 import tarfile
+try:
+    from stat import filemode
+except ImportError:  # Python 2
+    filemode = tarfile.filemode
 
 from libarchive import file_reader
 
@@ -83,7 +87,7 @@ def get_tarinfos(location):
                 path += '/'
             # libarchive introduces prefixes such as h prefix for
             # hardlinks: tarfile does not, so we ignore the first char
-            mode = tarfile.filemode(entry.mode)[1:]
+            mode = filemode(entry.mode)[1:]
             yield {
                 'path': path,
                 'mtime': entry.mtime,
