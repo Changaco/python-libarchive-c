@@ -17,5 +17,6 @@ setup(
     license='CC0',
     packages=find_packages(exclude=['tests']),
     long_description=open(join(dirname(__file__), 'README.rst')).read(),
+    long_description_content_type='text/x-rst',
     keywords='archive libarchive 7z tar bz2 zip gz',
 )
