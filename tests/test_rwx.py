@@ -122,10 +122,10 @@ def test_write_not_fail(write_fail_mock):
     'archfmt,data_bytes',
     [('zip', b'content'),
      ('gnutar', b''),
-     ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode())])
+     ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode()),
+     ('7zip', b'lorem\0ipsum')])
 def test_adding_entry_from_memory(archfmt, data_bytes):
     entry_path = 'testfile.data'
-
     entry_data = data_bytes
     entry_size = len(data_bytes)
 
