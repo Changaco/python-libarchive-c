@@ -126,11 +126,8 @@ def test_write_not_fail(write_fail_mock):
 def test_adding_entry_from_memory(archfmt, data_bytes):
     entry_path = 'testfile.data'
 
-    # entry_data must be a list of byte-like objects for maximum compatibility
-    # (Use of other data types can have undesirable side-effects)
-    # entry_size is the total size in bytes of the entry_data items
-    entry_data = [data_bytes]
-    entry_size = sum(len(bdata) for bdata in entry_data)
+    entry_data = data_bytes
+    entry_size = len(data_bytes)
 
     blocks = []
 
@@ -144,7 +141,7 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
         for archive_entry in memory_archive:
-            expected = b''.join(entry_data)
+            expected = entry_data
             actual = b''.join(archive_entry.get_blocks())
             assert expected == actual
             assert archive_entry.path == entry_path

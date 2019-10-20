@@ -86,8 +86,8 @@ class ArchiveWrite(object):
         :type entry_path: str
         :param entry_size: entire size of entry in bytes
         :type entry_size: int
-        :param entry_data: content of entry as a list of byte-like objects
-        :type entry_data: iterable
+        :param entry_data: content of entry
+        :type entry_data: bytes or Iterable[bytes]
         :param filetype: which type of file: normal, symlink etc.
         should entry be created as
         :type filetype: octal number
@@ -95,6 +95,13 @@ class ArchiveWrite(object):
         :type permission: octal number
         """
         archive_pointer = self._pointer
+
+        if isinstance(entry_data, bytes):
+            entry_data = (entry_data,)
+        elif isinstance(entry_data, str):
+            raise TypeError(
+                "entry_data: expected bytes, got %r" % type(entry_data)
+            )
 
         with new_archive_entry() as archive_entry_pointer:
             archive_entry = ArchiveEntry(None, archive_entry_pointer)
