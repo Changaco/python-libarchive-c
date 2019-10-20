@@ -6,6 +6,7 @@ import io
 import json
 
 import libarchive
+from libarchive.entry import format_time
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 from libarchive.write import memory_writer
 from mock import patch
@@ -156,3 +157,10 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
             actual = b''.join(archive_entry.get_blocks())
             assert expected == actual
             assert archive_entry.path == entry_path
+            assert archive_entry.atime in (atime[0], format_time(*atime))
+            assert archive_entry.mtime in (mtime[0], format_time(*mtime))
+            assert archive_entry.ctime in (ctime[0], format_time(*ctime))
+            if has_birthtime:
+                assert archive_entry.birthtime in (
+                    btime[0], format_time(*btime)
+                )
