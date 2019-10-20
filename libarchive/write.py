@@ -149,14 +149,14 @@ class ArchiveWrite(object):
 @contextmanager
 def new_archive_write(format_name, filter_name=None, options=''):
     archive_p = ffi.write_new()
-    getattr(ffi, 'write_set_format_'+format_name)(archive_p)
-    if filter_name:
-        getattr(ffi, 'write_add_filter_'+filter_name)(archive_p)
-    if options:
-        if not isinstance(options, bytes):
-            options = options.encode('utf-8')
-        ffi.write_set_options(archive_p, options)
     try:
+        ffi.get_write_format_function(format_name)(archive_p)
+        if filter_name:
+            ffi.get_write_filter_function(filter_name)(archive_p)
+        if options:
+            if not isinstance(options, bytes):
+                options = options.encode('utf-8')
+            ffi.write_set_options(archive_p, options)
         yield archive_p
         ffi.write_close(archive_p)
         ffi.write_free(archive_p)

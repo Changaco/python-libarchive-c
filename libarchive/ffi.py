@@ -101,6 +101,50 @@ def ffi(name, argtypes, restype, errcheck=None):
     return f
 
 
+def get_read_format_function(format_name):
+    function_name = 'read_support_format_' + format_name
+    func = globals().get(function_name)
+    if func:
+        return func
+    try:
+        return ffi(function_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        raise ValueError('the read format %r is not available' % format_name)
+
+
+def get_read_filter_function(filter_name):
+    function_name = 'read_support_filter_' + filter_name
+    func = globals().get(function_name)
+    if func:
+        return func
+    try:
+        return ffi(function_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        raise ValueError('the read filter %r is not available' % filter_name)
+
+
+def get_write_format_function(format_name):
+    function_name = 'write_set_format_' + format_name
+    func = globals().get(function_name)
+    if func:
+        return func
+    try:
+        return ffi(function_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        raise ValueError('the write format %r is not available' % format_name)
+
+
+def get_write_filter_function(filter_name):
+    function_name = 'write_add_filter_' + filter_name
+    func = globals().get(function_name)
+    if func:
+        return func
+    try:
+        return ffi(function_name, [c_archive_p], c_int, check_int)
+    except AttributeError:
+        raise ValueError('the write filter %r is not available' % filter_name)
+
+
 # FFI declarations
 
 # archive_util
@@ -160,9 +204,9 @@ READ_FORMATS = set((
 ))
 for f_name in list(READ_FORMATS):
     try:
-        ffi('read_support_format_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:  # pragma: no cover
-        logger.info('read format "%s" is not supported' % f_name)
+        get_read_format_function(f_name)
+    except ValueError as e:  # pragma: no cover
+        logger.info(str(e))
         READ_FORMATS.remove(f_name)
 
 READ_FILTERS = set((
@@ -171,9 +215,9 @@ READ_FILTERS = set((
 ))
 for f_name in list(READ_FILTERS):
     try:
-        ffi('read_support_filter_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:  # pragma: no cover
-        logger.info('read filter "%s" is not supported' % f_name)
+        get_read_filter_function(f_name)
+    except ValueError as e:  # pragma: no cover
+        logger.info(str(e))
         READ_FILTERS.remove(f_name)
 
 ffi('read_open',
@@ -222,9 +266,9 @@ WRITE_FORMATS = set((
 ))
 for f_name in list(WRITE_FORMATS):
     try:
-        ffi('write_set_format_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:  # pragma: no cover
-        logger.info('write format "%s" is not supported' % f_name)
+        get_write_format_function(f_name)
+    except ValueError as e:  # pragma: no cover
+        logger.info(str(e))
         WRITE_FORMATS.remove(f_name)
 
 WRITE_FILTERS = set((
@@ -233,9 +277,9 @@ WRITE_FILTERS = set((
 ))
 for f_name in list(WRITE_FILTERS):
     try:
-        ffi('write_add_filter_'+f_name, [c_archive_p], c_int, check_int)
-    except AttributeError:  # pragma: no cover
-        logger.info('write filter "%s" is not supported' % f_name)
+        get_write_filter_function(f_name)
+    except ValueError as e:  # pragma: no cover
+        logger.info(str(e))
         WRITE_FILTERS.remove(f_name)
 
 ffi('write_open',

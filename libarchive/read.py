@@ -36,9 +36,9 @@ def new_archive_read(format_name='all', filter_name='all'):
     Returns a pointer if successful. Raises ArchiveError on error.
     """
     archive_p = ffi.read_new()
-    getattr(ffi, 'read_support_filter_'+filter_name)(archive_p)
-    getattr(ffi, 'read_support_format_'+format_name)(archive_p)
     try:
+        ffi.get_read_filter_function(filter_name)(archive_p)
+        ffi.get_read_format_function(format_name)(archive_p)
         yield archive_p
     finally:
         ffi.read_free(archive_p)
