@@ -1,12 +1,15 @@
 """Test reading, writing and extracting archives."""
 
 from __future__ import division, print_function, unicode_literals
+
 import io
+import json
 
 import libarchive
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 from libarchive.write import memory_writer
 from mock import patch
+import pytest
 
 from . import check_archive, in_dir, treestat
 
@@ -115,10 +118,16 @@ def test_write_not_fail(write_fail_mock):
     assert not write_fail_mock.called
 
 
-def test_adding_entry_from_memory():
-    entry_path = 'this is path'
-    entry_data = 'content'
-    entry_size = len(entry_data)
+@pytest.mark.parametrize(
+    'archfmt,data_bytes',
+    [('zip', b'content'),
+     ('gnutar', b''),
+     ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode()),
+     ('7zip', b'lorem\0ipsum')])
+def test_adding_entry_from_memory(archfmt, data_bytes):
+    entry_path = 'testfile.data'
+    entry_data = data_bytes
+    entry_size = len(data_bytes)
 
     blocks = []
 
@@ -126,13 +135,13 @@ def test_adding_entry_from_memory():
         blocks.append(data[:])
         return len(data)
 
-    with libarchive.custom_writer(write_callback, 'zip') as archive:
+    with libarchive.custom_writer(write_callback, archfmt) as archive:
         archive.add_file_from_memory(entry_path, entry_size, entry_data)
 
     buf = b''.join(blocks)
     with libarchive.memory_reader(buf) as memory_archive:
         for archive_entry in memory_archive:
-            assert entry_data.encode() == b''.join(
-                archive_entry.get_blocks()
-            )
+            expected = entry_data
+            actual = b''.join(archive_entry.get_blocks())
+            assert expected == actual
             assert archive_entry.path == entry_path
