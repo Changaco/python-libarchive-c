@@ -77,12 +77,8 @@ class ArchiveWrite(object):
 
     def add_file_from_memory(
             self, entry_path, entry_size, entry_data,
-            filetype=REGULAR_FILE,
-            permission=DEFAULT_UNIX_PERMISSION,
-            atime=None,
-            mtime=None,
-            ctime=None,
-            birthtime=None,
+            filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
+            atime=None, mtime=None, ctime=None, birthtime=None,
     ):
         """"Add file from memory to archive.
 
@@ -124,21 +120,21 @@ class ArchiveWrite(object):
             entry_set_perm(archive_entry_pointer, permission)
 
             if atime is not None:
-                archive_entry.set_atime(*(
-                    (atime, 0)
-                    if isinstance(atime, (int, float)) else atime))
+                if not isinstance(atime, tuple):
+                    atime = (atime, 0)
+                archive_entry.set_atime(*atime)
             if mtime is not None:
-                archive_entry.set_mtime(*(
-                    (mtime, 0)
-                    if isinstance(mtime, (int, float)) else mtime))
+                if not isinstance(mtime, tuple):
+                    mtime = (mtime, 0)
+                archive_entry.set_mtime(*mtime)
             if ctime is not None:
-                archive_entry.set_ctime(*(
-                    (ctime, 0)
-                    if isinstance(ctime, (int, float)) else ctime))
+                if not isinstance(ctime, tuple):
+                    ctime = (ctime, 0)
+                archive_entry.set_ctime(*ctime)
             if birthtime is not None:
-                archive_entry.set_birthtime(*(
-                    (birthtime, 0)
-                    if isinstance(birthtime, (int, float)) else birthtime))
+                if not isinstance(birthtime, tuple):
+                    birthtime = (birthtime, 0)
+                archive_entry.set_birthtime(*birthtime)
             write_header(archive_pointer, archive_entry_pointer)
 
             for chunk in entry_data:
