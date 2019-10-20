@@ -24,6 +24,8 @@ def format_time(seconds, nanos):
 
 class ArchiveEntry(object):
 
+    __slots__ = ('_archive_p', '_entry_p')
+
     def __init__(self, archive_p, entry_p):
         self._archive_p = archive_p
         self._entry_p = entry_p
