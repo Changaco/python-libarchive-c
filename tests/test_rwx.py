@@ -121,7 +121,7 @@ def test_write_not_fail(write_fail_mock):
 @pytest.mark.parametrize(
     'archfmt,data_bytes',
     [('zip', b'content'),
-     ('gnutar', 'a_string'.encode()),
+     ('gnutar', b''),
      ('pax', json.dumps({'a': 1, 'b': 2, 'c': 3}).encode())])
 def test_adding_entry_from_memory(archfmt, data_bytes):
     entry_path = 'testfile.data'
