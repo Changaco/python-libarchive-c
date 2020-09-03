@@ -1,8 +1,8 @@
 from __future__ import division, print_function, unicode_literals
 
 from ctypes import (
-    c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_void_p,
-    c_wchar_p, CFUNCTYPE, POINTER,
+    c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_int64,
+    c_void_p, c_wchar_p, CFUNCTYPE, POINTER,
 )
 
 try:
@@ -15,6 +15,7 @@ from ctypes.util import find_library
 import logging
 import mmap
 import os
+import sysconfig
 
 from .exception import ArchiveError
 
@@ -56,6 +57,11 @@ VOID_CB = lambda *_: ARCHIVE_OK
 
 c_archive_p = c_void_p
 c_archive_entry_p = c_void_p
+
+if sysconfig.get_config_var('SIZEOF_TIME_T') == 8:
+    c_time_t = c_int64
+else:
+    c_time_t = c_long
 
 
 # Helper functions
@@ -157,10 +163,10 @@ error_string = ffi('error_string', [c_archive_p], c_char_p)
 ffi('entry_new', [], c_archive_entry_p, check_null)
 
 ffi('entry_filetype', [c_archive_entry_p], c_int)
-ffi('entry_atime', [c_archive_entry_p], c_int)
-ffi('entry_birthtime', [c_archive_entry_p], c_int)
-ffi('entry_mtime', [c_archive_entry_p], c_int)
-ffi('entry_ctime', [c_archive_entry_p], c_int)
+ffi('entry_atime', [c_archive_entry_p], c_time_t)
+ffi('entry_birthtime', [c_archive_entry_p], c_time_t)
+ffi('entry_mtime', [c_archive_entry_p], c_time_t)
+ffi('entry_ctime', [c_archive_entry_p], c_time_t)
 ffi('entry_atime_nsec', [c_archive_entry_p], c_long)
 ffi('entry_birthtime_nsec', [c_archive_entry_p], c_long)
 ffi('entry_mtime_nsec', [c_archive_entry_p], c_long)
@@ -184,10 +190,10 @@ ffi('entry_gid', [c_archive_entry_p], c_longlong)
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
 ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], None)
-ffi('entry_set_atime', [c_archive_entry_p, c_int, c_long], None)
-ffi('entry_set_mtime', [c_archive_entry_p, c_int, c_long], None)
-ffi('entry_set_ctime', [c_archive_entry_p, c_int, c_long], None)
-ffi('entry_set_birthtime', [c_archive_entry_p, c_int, c_long], None)
+ffi('entry_set_atime', [c_archive_entry_p, c_time_t, c_long], None)
+ffi('entry_set_mtime', [c_archive_entry_p, c_time_t, c_long], None)
+ffi('entry_set_ctime', [c_archive_entry_p, c_time_t, c_long], None)
+ffi('entry_set_birthtime', [c_archive_entry_p, c_time_t, c_long], None)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
 
