@@ -319,3 +319,17 @@ ffi('write_free', [c_archive_p], c_int, check_int)
 
 # library version
 ffi('version_number', [], c_int, check_int)
+
+try:
+    ffi('read_add_passphrase', [c_archive_p, c_char_p], c_int, check_int)
+    ffi('write_set_passphrase', [c_archive_p, c_char_p], c_int, check_int)
+except AttributeError:
+    logger.warning('archive encryption is not supported')
+
+    def read_add_passphrase(*args, **kwargs):
+        raise NotImplementedError(
+            "undefined symbol: archive_read_add_passphrase")
+
+    def write_set_passphrase(*args, **kwargs):
+        raise NotImplementedError(
+            "undefined symbol: archive_write_set_passphrase")

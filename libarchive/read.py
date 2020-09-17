@@ -28,13 +28,17 @@ class ArchiveRead(object):
 
 
 @contextmanager
-def new_archive_read(format_name='all', filter_name='all'):
+def new_archive_read(format_name='all', filter_name='all', passphrase=None):
     """Creates an archive struct suitable for reading from an archive.
 
     Returns a pointer if successful. Raises ArchiveError on error.
     """
     archive_p = ffi.read_new()
     try:
+        if passphrase:
+            if not isinstance(passphrase, bytes):
+                passphrase = passphrase.encode('utf-8')
+            ffi.read_add_passphrase(archive_p, passphrase)
         ffi.get_read_filter_function(filter_name)(archive_p)
         ffi.get_read_format_function(format_name)(archive_p)
         yield archive_p
@@ -72,10 +76,11 @@ def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
 
 
 @contextmanager
-def file_reader(path, format_name='all', filter_name='all', block_size=4096):
+def file_reader(path, format_name='all', filter_name='all', block_size=4096,
+                passphrase=None):
     """Read an archive from a file.
     """
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         try:
             block_size = stat(path).st_blksize
         except (OSError, AttributeError):  # pragma: no cover

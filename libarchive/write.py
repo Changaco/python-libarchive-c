@@ -145,12 +145,25 @@ class ArchiveWrite(object):
 
 
 @contextmanager
-def new_archive_write(format_name, filter_name=None, options=''):
+def new_archive_write(format_name,
+                      filter_name=None,
+                      options='',
+                      passphrase=None):
     archive_p = ffi.write_new()
     try:
         ffi.get_write_format_function(format_name)(archive_p)
         if filter_name:
             ffi.get_write_filter_function(filter_name)(archive_p)
+        if passphrase:
+            if format_name != 'zip':
+                raise RuntimeError('encryption is only support by zip format')
+            if 'encryption' not in options:
+                raise RuntimeError(
+                    'option "encryption=type" is required to enable encryption'
+                )
+            if not isinstance(passphrase, bytes):
+                passphrase = passphrase.encode('utf-8')
+            ffi.write_set_passphrase(archive_p, passphrase)
         if options:
             if not isinstance(options, bytes):
                 options = options.encode('utf-8')
@@ -199,9 +212,11 @@ def fd_writer(
 @contextmanager
 def file_writer(
         filepath, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options=''
+        archive_write_class=ArchiveWrite, options='',
+        passphrase=None
 ):
-    with new_archive_write(format_name, filter_name, options) as archive_p:
+    with new_archive_write(format_name, filter_name, options,
+                           passphrase) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
         yield archive_write_class(archive_p)
 
