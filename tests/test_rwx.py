@@ -97,6 +97,20 @@ def test_custom_writer_and_stream_reader():
     # Read the archive and check that the data is correct
     with libarchive.stream_reader(stream, 'zip') as archive:
         check_archive(archive, tree)
+        
+def test_custom_writer_and_seekable_stream_reader():
+    # Collect information on what should be in the archive
+    tree = treestat('libarchive')
+
+    # Create an archive of our libarchive/ directory
+    stream = io.BytesIO()
+    with libarchive.custom_writer(stream.write, 'zip') as archive:
+        archive.add_files('libarchive/')
+    stream.seek(0)
+
+    # Read the archive and check that the data is correct
+    with libarchive.seekable_stream_reader(stream, 'zip') as archive:
+        get_entries(archive) == tree
 
 
 @patch('libarchive.ffi.write_fail')
