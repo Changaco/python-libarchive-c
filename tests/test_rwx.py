@@ -110,7 +110,8 @@ def test_custom_writer_and_seekable_stream_reader():
 
     # Read the archive and check that the data is correct
     with libarchive.seekable_stream_reader(stream, 'zip') as archive:
-        assert sorteD(list(get_entries(archive)['path'])) == sorted(tree)
+        paths = [entry['path'] for entry in get_entries(archive)]
+        assert sorted(paths) == sorted(tree)
 
 
 @patch('libarchive.ffi.write_fail')
