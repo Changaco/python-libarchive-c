@@ -6,7 +6,7 @@ from os import fstat, stat
 
 from . import ffi
 from .ffi import (ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK,
-                  VOID_CB, page_size)
+                  SEEK_CALLBACK, VOID_CB, page_size)
 from .entry import ArchiveEntry, new_archive_entry
 
 
@@ -58,8 +58,7 @@ def custom_reader(
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield archive_read_class(archive_p)
-
-
+        
 @contextmanager
 def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
     """Read an archive from a file descriptor.
@@ -120,3 +119,37 @@ def stream_reader(stream, format_name='all', filter_name='all',
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
+        
+@contextmanager
+def seekable_stream_reader(stream, format_name='all', filter_name='all',
+                  block_size=page_size):
+    """Read an archive from a stream which seekable file-like objects.
+
+    The `stream` object must support the standard `readinto`, 'seek' and
+    'tell' methods.
+    """
+    buf = create_string_buffer(block_size)
+    buf_p = cast(buf, c_void_p)
+
+    def read_func(archive_p, context, ptrptr):
+        # readinto the buffer, returns number of bytes read
+        length = stream.readinto(buf)
+        # write the address of the buffer into the pointer
+        ptrptr = cast(ptrptr, POINTER(c_void_p))
+        ptrptr[0] = buf_p
+        # tell libarchive how much data was written into the buffer
+        return length
+
+    def seek_func(archive_p, context, offset, whence):
+        stream.seek(offset, whence)
+        # tell libarchvie the current position
+        return file.tell()        
+        
+    open_cb = OPEN_CALLBACK(VOID_CB)
+    read_cb = READ_CALLBACK(read_func)
+    seek_cb = SEEK_CALLBACK(seek_func)
+    close_cb = CLOSE_CALLBACK(VOID_CB)
+    with new_archive_read(format_name, filter_name) as archive_p:
+        ffi.read_set_seek_callback(archive_p, seek_cb)
+        ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
+        yield ArchiveRead(archive_p)        
