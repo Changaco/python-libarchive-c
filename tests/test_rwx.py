@@ -12,7 +12,7 @@ from libarchive.write import memory_writer
 from mock import patch
 import pytest
 
-from . import check_archive, in_dir, treestat
+from . import check_archive, in_dir, treestat, get_entries
 
 
 def test_buffers(tmpdir):
