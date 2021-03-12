@@ -229,8 +229,8 @@ for f_name in list(READ_FILTERS):
         logger.info(str(e))
         READ_FILTERS.remove(f_name)
 
-ffi('read_set_seek_callback', [c_archive_p, SEEK_CALLBACK], c_int, check_int)        
-        
+ffi('read_set_seek_callback', [c_archive_p, SEEK_CALLBACK], c_int, check_int)
+
 ffi('read_open',
     [c_archive_p, c_void_p, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK],
     c_int, check_int)

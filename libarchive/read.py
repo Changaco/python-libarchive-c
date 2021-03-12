@@ -58,7 +58,8 @@ def custom_reader(
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield archive_read_class(archive_p)
-        
+
+
 @contextmanager
 def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
     """Read an archive from a file descriptor.
@@ -119,10 +120,11 @@ def stream_reader(stream, format_name='all', filter_name='all',
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
-        
+
+
 @contextmanager
 def seekable_stream_reader(stream, format_name='all', filter_name='all',
-                  block_size=page_size):
+                           block_size=page_size):
     """Read an archive from a stream which seekable file-like objects.
 
     The `stream` object must support the standard `readinto`, 'seek' and
@@ -143,8 +145,8 @@ def seekable_stream_reader(stream, format_name='all', filter_name='all',
     def seek_func(archive_p, context, offset, whence):
         stream.seek(offset, whence)
         # tell libarchvie the current position
-        return file.tell()        
-        
+        return stream.tell()
+
     open_cb = OPEN_CALLBACK(VOID_CB)
     read_cb = READ_CALLBACK(read_func)
     seek_cb = SEEK_CALLBACK(seek_func)
@@ -152,4 +154,4 @@ def seekable_stream_reader(stream, format_name='all', filter_name='all',
     with new_archive_read(format_name, filter_name) as archive_p:
         ffi.read_set_seek_callback(archive_p, seek_cb)
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
-        yield ArchiveRead(archive_p)        
+        yield ArchiveRead(archive_p)

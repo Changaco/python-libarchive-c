@@ -12,7 +12,7 @@ from libarchive.write import memory_writer
 from mock import patch
 import pytest
 
-from . import check_archive, in_dir, treestat, get_entries
+from . import check_archive, in_dir, treestat
 
 
 def test_buffers(tmpdir):
@@ -97,7 +97,8 @@ def test_custom_writer_and_stream_reader():
     # Read the archive and check that the data is correct
     with libarchive.stream_reader(stream, 'zip') as archive:
         check_archive(archive, tree)
-        
+
+
 def test_custom_writer_and_seekable_stream_reader():
     # Collect information on what should be in the archive
     tree = treestat('libarchive')
