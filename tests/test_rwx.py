@@ -105,12 +105,12 @@ def test_custom_writer_and_seekable_stream_reader():
 
     # Create an archive of our libarchive/ directory
     stream = io.BytesIO()
-    with libarchive.custom_writer(stream.write, 'zip') as archive:
+    with libarchive.custom_writer(stream.write, '7zip') as archive:
         archive.add_files('libarchive/')
     stream.seek(0)
 
     # Read the archive and check that the data is correct
-    with libarchive.seekable_stream_reader(stream, 'zip') as archive:
+    with libarchive.seekable_stream_reader(stream, '7zip') as archive:
         paths = [entry.name.rstrip('/') for entry in archive]
         assert sorted(paths) == sorted(tree)
 
