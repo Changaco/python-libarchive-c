@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from contextlib import contextmanager
 from ctypes import cast, c_void_p, POINTER, create_string_buffer
 from os import fstat, stat

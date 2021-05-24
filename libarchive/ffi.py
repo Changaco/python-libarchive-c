@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from ctypes import (
     c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_int64,
     c_void_p, c_wchar_p, CFUNCTYPE, POINTER,

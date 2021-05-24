@@ -1,7 +1,5 @@
 """Test reading, writing and extracting archives."""
 
-from __future__ import division, print_function, unicode_literals
-
 import io
 import json
 
