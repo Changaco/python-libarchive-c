@@ -17,7 +17,7 @@ Compatibility
 python
 ------
 
-python-libarchive-c is currently tested with python 2.7, 3.4, 3.5, and 3.6.
+python-libarchive-c is currently tested with python 3.6, 3.7, 3.8, and 3.9.
 
 If you find an incompatibility with older versions you can send us a small patch,
 but we won't accept big changes.

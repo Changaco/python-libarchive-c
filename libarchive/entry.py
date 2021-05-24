@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from contextlib import contextmanager
 from ctypes import c_char_p, create_string_buffer
 

@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from contextlib import closing, contextmanager
 from copy import copy
 from os import chdir, getcwd, stat, walk
@@ -13,11 +11,8 @@ except ImportError:  # Python 2
 
 from libarchive import file_reader
 
-from . import surrogateescape
-
 
 data_dir = join(dirname(__file__), 'data')
-surrogateescape.register()
 
 
 def check_archive(archive, tree):

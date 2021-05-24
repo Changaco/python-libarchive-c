@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
 
