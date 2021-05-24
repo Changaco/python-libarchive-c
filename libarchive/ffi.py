@@ -48,6 +48,9 @@ WRITE_CALLBACK = CFUNCTYPE(
 READ_CALLBACK = CFUNCTYPE(
     c_ssize_t, c_void_p, c_void_p, POINTER(c_void_p)
 )
+SEEK_CALLBACK = CFUNCTYPE(
+    c_longlong, c_int, c_void_p, c_longlong, c_int
+)
 OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 VOID_CB = lambda *_: ARCHIVE_OK
@@ -225,6 +228,8 @@ for f_name in list(READ_FILTERS):
     except ValueError as e:  # pragma: no cover
         logger.info(str(e))
         READ_FILTERS.remove(f_name)
+
+ffi('read_set_seek_callback', [c_archive_p, SEEK_CALLBACK], c_int, check_int)
 
 ffi('read_open',
     [c_archive_p, c_void_p, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK],

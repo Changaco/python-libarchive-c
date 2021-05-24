@@ -99,6 +99,22 @@ def test_custom_writer_and_stream_reader():
         check_archive(archive, tree)
 
 
+def test_custom_writer_and_seekable_stream_reader():
+    # Collect information on what should be in the archive
+    tree = treestat('libarchive')
+
+    # Create an archive of our libarchive/ directory
+    stream = io.BytesIO()
+    with libarchive.custom_writer(stream.write, '7zip') as archive:
+        archive.add_files('libarchive/')
+    stream.seek(0)
+
+    # Read the archive and check that the data is correct
+    with libarchive.seekable_stream_reader(stream, '7zip') as archive:
+        paths = [entry.name.rstrip('/') for entry in archive]
+        assert sorted(paths) == sorted(tree)
+
+
 @patch('libarchive.ffi.write_fail')
 def test_write_fail(write_fail_mock):
     buf = bytes(bytearray(1000000))
