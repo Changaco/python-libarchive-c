@@ -38,7 +38,13 @@ def new_archive_read(format_name='all', filter_name='all', passphrase=None):
         if passphrase:
             if not isinstance(passphrase, bytes):
                 passphrase = passphrase.encode('utf-8')
-            ffi.read_add_passphrase(archive_p, passphrase)
+            try:
+                ffi.read_add_passphrase(archive_p, passphrase)
+            except AttributeError:
+                raise NotImplementedError(
+                    f"the libarchive being used (version {ffi.version_number()}, "
+                    f"path {ffi.libarchive_path}) doesn't support encryption"
+                )
         ffi.get_read_filter_function(filter_name)(archive_p)
         ffi.get_read_format_function(format_name)(archive_p)
         yield archive_p

@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
+import warnings
 
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
@@ -154,20 +155,29 @@ def new_archive_write(format_name,
         ffi.get_write_format_function(format_name)(archive_p)
         if filter_name:
             ffi.get_write_filter_function(filter_name)(archive_p)
-        if passphrase:
-            if format_name != 'zip':
-                raise RuntimeError('encryption is only support by zip format')
-            if 'encryption' not in options:
-                raise RuntimeError(
-                    'option "encryption=type" is required to enable encryption'
+        if passphrase and 'encryption' not in options:
+            if format_name == 'zip':
+                warnings.warn(
+                    "The default encryption scheme of zip archives is weak. "
+                    "Use `options='encryption=$type'` to specify the encryption "
+                    "type you want to use. The supported values are 'zipcrypt' "
+                    "(the weak default), 'aes128' and 'aes256'."
                 )
-            if not isinstance(passphrase, bytes):
-                passphrase = passphrase.encode('utf-8')
-            ffi.write_set_passphrase(archive_p, passphrase)
+            options += ',encryption' if options else 'encryption'
         if options:
             if not isinstance(options, bytes):
                 options = options.encode('utf-8')
             ffi.write_set_options(archive_p, options)
+        if passphrase:
+            if not isinstance(passphrase, bytes):
+                passphrase = passphrase.encode('utf-8')
+            try:
+                ffi.write_set_passphrase(archive_p, passphrase)
+            except AttributeError:
+                raise NotImplementedError(
+                    f"the libarchive being used (version {ffi.version_number()}, "
+                    f"path {ffi.libarchive_path}) doesn't support encryption"
+                )
         yield archive_p
         ffi.write_close(archive_p)
         ffi.write_free(archive_p)
