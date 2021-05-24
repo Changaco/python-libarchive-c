@@ -144,7 +144,7 @@ def seekable_stream_reader(stream, format_name='all', filter_name='all',
 
     def seek_func(archive_p, context, offset, whence):
         stream.seek(offset, whence)
-        # tell libarchvie the current position
+        # tell libarchive the current position
         return stream.tell()
 
     open_cb = OPEN_CALLBACK(VOID_CB)
