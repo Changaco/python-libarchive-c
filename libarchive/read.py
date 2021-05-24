@@ -125,7 +125,7 @@ def stream_reader(stream, format_name='all', filter_name='all',
 @contextmanager
 def seekable_stream_reader(stream, format_name='all', filter_name='all',
                            block_size=page_size):
-    """Read an archive from a stream which seekable file-like objects.
+    """Read an archive from a seekable stream.
 
     The `stream` object must support the standard `readinto`, 'seek' and
     'tell' methods.
