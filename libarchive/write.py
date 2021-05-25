@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
+import warnings
 
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
@@ -145,16 +146,38 @@ class ArchiveWrite(object):
 
 
 @contextmanager
-def new_archive_write(format_name, filter_name=None, options=''):
+def new_archive_write(format_name,
+                      filter_name=None,
+                      options='',
+                      passphrase=None):
     archive_p = ffi.write_new()
     try:
         ffi.get_write_format_function(format_name)(archive_p)
         if filter_name:
             ffi.get_write_filter_function(filter_name)(archive_p)
+        if passphrase and 'encryption' not in options:
+            if format_name == 'zip':
+                warnings.warn(
+                    "The default encryption scheme of zip archives is weak. "
+                    "Use `options='encryption=$type'` to specify the encryption "
+                    "type you want to use. The supported values are 'zipcrypt' "
+                    "(the weak default), 'aes128' and 'aes256'."
+                )
+            options += ',encryption' if options else 'encryption'
         if options:
             if not isinstance(options, bytes):
                 options = options.encode('utf-8')
             ffi.write_set_options(archive_p, options)
+        if passphrase:
+            if not isinstance(passphrase, bytes):
+                passphrase = passphrase.encode('utf-8')
+            try:
+                ffi.write_set_passphrase(archive_p, passphrase)
+            except AttributeError:
+                raise NotImplementedError(
+                    f"the libarchive being used (version {ffi.version_number()}, "
+                    f"path {ffi.libarchive_path}) doesn't support encryption"
+                )
         yield archive_p
         ffi.write_close(archive_p)
         ffi.write_free(archive_p)
@@ -168,7 +191,7 @@ def new_archive_write(format_name, filter_name=None, options=''):
 def custom_writer(
         write_func, format_name, filter_name=None,
         open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_write_class=ArchiveWrite, options=''
+        archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
 
     def write_cb_internal(archive_p, context, buffer_, length):
@@ -179,7 +202,8 @@ def custom_writer(
     write_cb = WRITE_CALLBACK(write_cb_internal)
     close_cb = CLOSE_CALLBACK(close_func)
 
-    with new_archive_write(format_name, filter_name, options) as archive_p:
+    with new_archive_write(format_name, filter_name, options,
+                           passphrase) as archive_p:
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
         ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
@@ -189,9 +213,10 @@ def custom_writer(
 @contextmanager
 def fd_writer(
         fd, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options=''
+        archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
-    with new_archive_write(format_name, filter_name, options) as archive_p:
+    with new_archive_write(format_name, filter_name, options,
+                           passphrase) as archive_p:
         ffi.write_open_fd(archive_p, fd)
         yield archive_write_class(archive_p)
 
@@ -199,9 +224,10 @@ def fd_writer(
 @contextmanager
 def file_writer(
         filepath, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options=''
+        archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
-    with new_archive_write(format_name, filter_name, options) as archive_p:
+    with new_archive_write(format_name, filter_name, options,
+                           passphrase) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
         yield archive_write_class(archive_p)
 
@@ -209,9 +235,10 @@ def file_writer(
 @contextmanager
 def memory_writer(
         buf, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options=''
+        archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
-    with new_archive_write(format_name, filter_name, options) as archive_p:
+    with new_archive_write(format_name, filter_name, options,
+                           passphrase) as archive_p:
         used = byref(c_size_t())
         buf_p = cast(buf, c_void_p)
         ffi.write_open_memory(archive_p, buf_p, len(buf), used)

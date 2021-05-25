@@ -28,13 +28,23 @@ class ArchiveRead(object):
 
 
 @contextmanager
-def new_archive_read(format_name='all', filter_name='all'):
+def new_archive_read(format_name='all', filter_name='all', passphrase=None):
     """Creates an archive struct suitable for reading from an archive.
 
     Returns a pointer if successful. Raises ArchiveError on error.
     """
     archive_p = ffi.read_new()
     try:
+        if passphrase:
+            if not isinstance(passphrase, bytes):
+                passphrase = passphrase.encode('utf-8')
+            try:
+                ffi.read_add_passphrase(archive_p, passphrase)
+            except AttributeError:
+                raise NotImplementedError(
+                    f"the libarchive being used (version {ffi.version_number()}, "
+                    f"path {ffi.libarchive_path}) doesn't support encryption"
+                )
         ffi.get_read_filter_function(filter_name)(archive_p)
         ffi.get_read_format_function(format_name)(archive_p)
         yield archive_p
@@ -46,23 +56,24 @@ def new_archive_read(format_name='all', filter_name='all'):
 def custom_reader(
         read_func, format_name='all', filter_name='all',
         open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_read_class=ArchiveRead
+        archive_read_class=ArchiveRead, passphrase=None,
 ):
     """Read an archive using a custom function.
     """
     open_cb = OPEN_CALLBACK(open_func)
     read_cb = READ_CALLBACK(read_func)
     close_cb = CLOSE_CALLBACK(close_func)
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield archive_read_class(archive_p)
 
 
 @contextmanager
-def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
+def fd_reader(fd, format_name='all', filter_name='all', block_size=4096,
+              passphrase=None):
     """Read an archive from a file descriptor.
     """
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         try:
             block_size = fstat(fd).st_blksize
         except (OSError, AttributeError):  # pragma: no cover
@@ -72,10 +83,11 @@ def fd_reader(fd, format_name='all', filter_name='all', block_size=4096):
 
 
 @contextmanager
-def file_reader(path, format_name='all', filter_name='all', block_size=4096):
+def file_reader(path, format_name='all', filter_name='all', block_size=4096,
+                passphrase=None):
     """Read an archive from a file.
     """
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         try:
             block_size = stat(path).st_blksize
         except (OSError, AttributeError):  # pragma: no cover
@@ -85,17 +97,17 @@ def file_reader(path, format_name='all', filter_name='all', block_size=4096):
 
 
 @contextmanager
-def memory_reader(buf, format_name='all', filter_name='all'):
+def memory_reader(buf, format_name='all', filter_name='all', passphrase=None):
     """Read an archive from memory.
     """
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         ffi.read_open_memory(archive_p, cast(buf, c_void_p), len(buf))
         yield ArchiveRead(archive_p)
 
 
 @contextmanager
 def stream_reader(stream, format_name='all', filter_name='all',
-                  block_size=page_size):
+                  block_size=page_size, passphrase=None):
     """Read an archive from a stream.
 
     The `stream` object must support the standard `readinto` method.
@@ -115,14 +127,14 @@ def stream_reader(stream, format_name='all', filter_name='all',
     open_cb = OPEN_CALLBACK(VOID_CB)
     read_cb = READ_CALLBACK(read_func)
     close_cb = CLOSE_CALLBACK(VOID_CB)
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
 
 
 @contextmanager
 def seekable_stream_reader(stream, format_name='all', filter_name='all',
-                           block_size=page_size):
+                           block_size=page_size, passphrase=None):
     """Read an archive from a seekable stream.
 
     The `stream` object must support the standard `readinto`, 'seek' and
@@ -149,7 +161,7 @@ def seekable_stream_reader(stream, format_name='all', filter_name='all',
     read_cb = READ_CALLBACK(read_func)
     seek_cb = SEEK_CALLBACK(seek_func)
     close_cb = CLOSE_CALLBACK(VOID_CB)
-    with new_archive_read(format_name, filter_name) as archive_p:
+    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         ffi.read_set_seek_callback(archive_p, seek_cb)
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
