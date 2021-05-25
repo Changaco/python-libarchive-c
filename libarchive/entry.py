@@ -20,7 +20,7 @@ def format_time(seconds, nanos):
     return int(seconds)
 
 
-class ArchiveEntry(object):
+class ArchiveEntry:
 
     __slots__ = ('_archive_p', '_entry_p')
 

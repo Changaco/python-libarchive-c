@@ -27,7 +27,7 @@ def new_archive_read_disk(path, flags=0, lookup=False):
         read_free(archive_p)
 
 
-class ArchiveWrite(object):
+class ArchiveWrite:
 
     def __init__(self, archive_p):
         self._pointer = archive_p

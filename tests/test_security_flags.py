@@ -1,6 +1,5 @@
 """Test security-related extraction flags."""
 
-from __future__ import division, print_function, unicode_literals
 import pytest
 import os
 

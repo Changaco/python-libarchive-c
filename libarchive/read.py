@@ -10,7 +10,7 @@ from .ffi import (
 from .entry import ArchiveEntry, new_archive_entry
 
 
-class ArchiveRead(object):
+class ArchiveRead:
 
     def __init__(self, archive_p):
         self._pointer = archive_p
