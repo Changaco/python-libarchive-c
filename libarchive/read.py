@@ -3,12 +3,14 @@ from ctypes import cast, c_void_p, POINTER, create_string_buffer
 from os import fstat, stat
 
 from . import ffi
-from .ffi import (ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK,
-                  SEEK_CALLBACK, VOID_CB, page_size)
+from .ffi import (
+    ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK, SEEK_CALLBACK,
+    VOID_CB, page_size,
+)
 from .entry import ArchiveEntry, new_archive_entry
 
 
-class ArchiveRead(object):
+class ArchiveRead:
 
     def __init__(self, archive_p):
         self._pointer = archive_p
@@ -54,9 +56,9 @@ def new_archive_read(format_name='all', filter_name='all', passphrase=None):
 
 @contextmanager
 def custom_reader(
-        read_func, format_name='all', filter_name='all',
-        open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_read_class=ArchiveRead, passphrase=None,
+    read_func, format_name='all', filter_name='all',
+    open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+    archive_read_class=ArchiveRead, passphrase=None,
 ):
     """Read an archive using a custom function.
     """
@@ -69,8 +71,9 @@ def custom_reader(
 
 
 @contextmanager
-def fd_reader(fd, format_name='all', filter_name='all', block_size=4096,
-              passphrase=None):
+def fd_reader(
+    fd, format_name='all', filter_name='all', block_size=4096, passphrase=None,
+):
     """Read an archive from a file descriptor.
     """
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
@@ -83,8 +86,9 @@ def fd_reader(fd, format_name='all', filter_name='all', block_size=4096,
 
 
 @contextmanager
-def file_reader(path, format_name='all', filter_name='all', block_size=4096,
-                passphrase=None):
+def file_reader(
+    path, format_name='all', filter_name='all', block_size=4096, passphrase=None,
+):
     """Read an archive from a file.
     """
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
@@ -106,8 +110,10 @@ def memory_reader(buf, format_name='all', filter_name='all', passphrase=None):
 
 
 @contextmanager
-def stream_reader(stream, format_name='all', filter_name='all',
-                  block_size=page_size, passphrase=None):
+def stream_reader(
+    stream, format_name='all', filter_name='all', block_size=page_size,
+    passphrase=None,
+):
     """Read an archive from a stream.
 
     The `stream` object must support the standard `readinto` method.
@@ -133,8 +139,10 @@ def stream_reader(stream, format_name='all', filter_name='all',
 
 
 @contextmanager
-def seekable_stream_reader(stream, format_name='all', filter_name='all',
-                           block_size=page_size, passphrase=None):
+def seekable_stream_reader(
+    stream, format_name='all', filter_name='all', block_size=page_size,
+    passphrase=None,
+):
     """Read an archive from a seekable stream.
 
     The `stream` object must support the standard `readinto`, 'seek' and
