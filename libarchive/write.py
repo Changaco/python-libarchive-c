@@ -75,9 +75,9 @@ class ArchiveWrite(object):
                         entry_clear(entry_p)
 
     def add_file_from_memory(
-            self, entry_path, entry_size, entry_data,
-            filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
-            atime=None, mtime=None, ctime=None, birthtime=None,
+        self, entry_path, entry_size, entry_data,
+        filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
+        atime=None, mtime=None, ctime=None, birthtime=None,
     ):
         """"Add file from memory to archive.
 
@@ -146,10 +146,7 @@ class ArchiveWrite(object):
 
 
 @contextmanager
-def new_archive_write(format_name,
-                      filter_name=None,
-                      options='',
-                      passphrase=None):
+def new_archive_write(format_name, filter_name=None, options='', passphrase=None):
     archive_p = ffi.write_new()
     try:
         ffi.get_write_format_function(format_name)(archive_p)
@@ -189,9 +186,9 @@ def new_archive_write(format_name,
 
 @contextmanager
 def custom_writer(
-        write_func, format_name, filter_name=None,
-        open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-        archive_write_class=ArchiveWrite, options='', passphrase=None,
+    write_func, format_name, filter_name=None,
+    open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+    archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
 
     def write_cb_internal(archive_p, context, buffer_, length):
@@ -212,8 +209,8 @@ def custom_writer(
 
 @contextmanager
 def fd_writer(
-        fd, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options='', passphrase=None,
+    fd, format_name, filter_name=None,
+    archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
@@ -223,8 +220,8 @@ def fd_writer(
 
 @contextmanager
 def file_writer(
-        filepath, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options='', passphrase=None,
+    filepath, format_name, filter_name=None,
+    archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
@@ -234,8 +231,8 @@ def file_writer(
 
 @contextmanager
 def memory_writer(
-        buf, format_name, filter_name=None,
-        archive_write_class=ArchiveWrite, options='', passphrase=None,
+    buf, format_name, filter_name=None,
+    archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
