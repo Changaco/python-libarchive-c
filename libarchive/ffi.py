@@ -328,5 +328,5 @@ try:
 except AttributeError:
     logger.info(
         f"the libarchive being used (version {version_number()}, "
-        f"path {ffi.libarchive_path}) doesn't support encryption"
+        f"path {libarchive_path}) doesn't support encryption"
     )
