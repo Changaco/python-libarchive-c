@@ -79,7 +79,7 @@ def _error_string(archive_p):
 
 def archive_error(archive_p, retcode):
     msg = _error_string(archive_p)
-    raise ArchiveError(msg, errno(archive_p), retcode, archive_p)
+    return ArchiveError(msg, errno(archive_p), retcode, archive_p)
 
 
 def check_null(ret, func, args):
