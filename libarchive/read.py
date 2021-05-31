@@ -57,8 +57,8 @@ def new_archive_read(format_name='all', filter_name='all', passphrase=None):
 @contextmanager
 def custom_reader(
     read_func, format_name='all', filter_name='all',
-    open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
-    archive_read_class=ArchiveRead, passphrase=None,
+    open_func=VOID_CB, seek_func=None, close_func=VOID_CB,
+    block_size=page_size, archive_read_class=ArchiveRead, passphrase=None,
 ):
     """Read an archive using a custom function.
     """
@@ -66,6 +66,8 @@ def custom_reader(
     read_cb = READ_CALLBACK(read_func)
     close_cb = CLOSE_CALLBACK(close_func)
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
+        if seek_func:
+            ffi.read_set_seek_callback(archive_p, SEEK_CALLBACK(seek_func))
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield archive_read_class(archive_p)
 
@@ -117,36 +119,9 @@ def stream_reader(
     """Read an archive from a stream.
 
     The `stream` object must support the standard `readinto` method.
-    """
-    buf = create_string_buffer(block_size)
-    buf_p = cast(buf, c_void_p)
 
-    def read_func(archive_p, context, ptrptr):
-        # readinto the buffer, returns number of bytes read
-        length = stream.readinto(buf)
-        # write the address of the buffer into the pointer
-        ptrptr = cast(ptrptr, POINTER(c_void_p))
-        ptrptr[0] = buf_p
-        # tell libarchive how much data was written into the buffer
-        return length
-
-    open_cb = OPEN_CALLBACK(VOID_CB)
-    read_cb = READ_CALLBACK(read_func)
-    close_cb = CLOSE_CALLBACK(VOID_CB)
-    with new_archive_read(format_name, filter_name, passphrase) as archive_p:
-        ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
-        yield ArchiveRead(archive_p)
-
-
-@contextmanager
-def seekable_stream_reader(
-    stream, format_name='all', filter_name='all', block_size=page_size,
-    passphrase=None,
-):
-    """Read an archive from a seekable stream.
-
-    The `stream` object must support the standard `readinto`, 'seek' and
-    'tell' methods.
+    If `stream.seekable()` returns `True`, then an appropriate seek callback is
+    passed to libarchive.
     """
     buf = create_string_buffer(block_size)
     buf_p = cast(buf, c_void_p)
@@ -167,9 +142,12 @@ def seekable_stream_reader(
 
     open_cb = OPEN_CALLBACK(VOID_CB)
     read_cb = READ_CALLBACK(read_func)
-    seek_cb = SEEK_CALLBACK(seek_func)
     close_cb = CLOSE_CALLBACK(VOID_CB)
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
-        ffi.read_set_seek_callback(archive_p, seek_cb)
+        if stream.seekable():
+            ffi.read_set_seek_callback(archive_p, SEEK_CALLBACK(seek_func))
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
+
+
+seekable_stream_reader = stream_reader
