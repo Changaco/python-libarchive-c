@@ -5,7 +5,7 @@ from os import fstat, stat
 from . import ffi
 from .ffi import (
     ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK, SEEK_CALLBACK,
-    VOID_CB, page_size,
+    NO_OPEN_CB, NO_CLOSE_CB, page_size,
 )
 from .entry import ArchiveEntry, new_archive_entry
 
@@ -57,14 +57,14 @@ def new_archive_read(format_name='all', filter_name='all', passphrase=None):
 @contextmanager
 def custom_reader(
     read_func, format_name='all', filter_name='all',
-    open_func=VOID_CB, seek_func=None, close_func=VOID_CB,
+    open_func=None, seek_func=None, close_func=None,
     block_size=page_size, archive_read_class=ArchiveRead, passphrase=None,
 ):
     """Read an archive using a custom function.
     """
-    open_cb = OPEN_CALLBACK(open_func)
+    open_cb = OPEN_CALLBACK(open_func) if open_func else NO_OPEN_CB
     read_cb = READ_CALLBACK(read_func)
-    close_cb = CLOSE_CALLBACK(close_func)
+    close_cb = CLOSE_CALLBACK(close_func) if close_func else NO_CLOSE_CB
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         if seek_func:
             ffi.read_set_seek_callback(archive_p, SEEK_CALLBACK(seek_func))
@@ -140,9 +140,9 @@ def stream_reader(
         # tell libarchive the current position
         return stream.tell()
 
-    open_cb = OPEN_CALLBACK(VOID_CB)
+    open_cb = NO_OPEN_CB
     read_cb = READ_CALLBACK(read_func)
-    close_cb = CLOSE_CALLBACK(VOID_CB)
+    close_cb = NO_CLOSE_CB
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         if stream.seekable():
             ffi.read_set_seek_callback(archive_p, SEEK_CALLBACK(seek_func))

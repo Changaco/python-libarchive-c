@@ -51,7 +51,9 @@ SEEK_CALLBACK = CFUNCTYPE(
 )
 OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
-VOID_CB = lambda *_: ARCHIVE_OK
+
+NO_OPEN_CB = ctypes.cast(None, OPEN_CALLBACK)
+NO_CLOSE_CB = ctypes.cast(None, CLOSE_CALLBACK)
 
 
 # Type aliases, for readability
