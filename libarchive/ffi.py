@@ -51,7 +51,9 @@ SEEK_CALLBACK = CFUNCTYPE(
 )
 OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
-VOID_CB = lambda *_: ARCHIVE_OK
+
+NO_OPEN_CB = ctypes.cast(None, OPEN_CALLBACK)
+NO_CLOSE_CB = ctypes.cast(None, CLOSE_CALLBACK)
 
 
 # Type aliases, for readability
@@ -79,7 +81,7 @@ def _error_string(archive_p):
 
 def archive_error(archive_p, retcode):
     msg = _error_string(archive_p)
-    raise ArchiveError(msg, errno(archive_p), retcode, archive_p)
+    return ArchiveError(msg, errno(archive_p), retcode, archive_p)
 
 
 def check_null(ret, func, args):
@@ -328,5 +330,5 @@ try:
 except AttributeError:
     logger.info(
         f"the libarchive being used (version {version_number()}, "
-        f"path {ffi.libarchive_path}) doesn't support encryption"
+        f"path {libarchive_path}) doesn't support encryption"
     )

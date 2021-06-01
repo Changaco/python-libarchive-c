@@ -5,8 +5,8 @@ import warnings
 from . import ffi
 from .entry import ArchiveEntry, new_archive_entry
 from .ffi import (
-    OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, VOID_CB, REGULAR_FILE,
-    DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
+    OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, NO_OPEN_CB, NO_CLOSE_CB,
+    REGULAR_FILE, DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
     page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
     read_next_header2, read_disk_descend, read_free, write_header, write_data,
     write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm,
@@ -187,7 +187,7 @@ def new_archive_write(format_name, filter_name=None, options='', passphrase=None
 @contextmanager
 def custom_writer(
     write_func, format_name, filter_name=None,
-    open_func=VOID_CB, close_func=VOID_CB, block_size=page_size,
+    open_func=None, close_func=None, block_size=page_size,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
 
@@ -195,9 +195,9 @@ def custom_writer(
         data = cast(buffer_, POINTER(c_char * length))[0]
         return write_func(data)
 
-    open_cb = OPEN_CALLBACK(open_func)
+    open_cb = OPEN_CALLBACK(open_func) if open_func else NO_OPEN_CB
     write_cb = WRITE_CALLBACK(write_cb_internal)
-    close_cb = CLOSE_CALLBACK(close_func)
+    close_cb = CLOSE_CALLBACK(close_func) if close_func else NO_CLOSE_CB
 
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
