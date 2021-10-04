@@ -143,9 +143,10 @@ def stream_reader(
     open_cb = NO_OPEN_CB
     read_cb = READ_CALLBACK(read_func)
     close_cb = NO_CLOSE_CB
+    seek_cb = SEEK_CALLBACK(seek_func)
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         if stream.seekable():
-            ffi.read_set_seek_callback(archive_p, SEEK_CALLBACK(seek_func))
+            ffi.read_set_seek_callback(archive_p, seek_cb)
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
         yield ArchiveRead(archive_p)
 

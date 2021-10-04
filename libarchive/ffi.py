@@ -47,7 +47,7 @@ READ_CALLBACK = CFUNCTYPE(
     c_ssize_t, c_void_p, c_void_p, POINTER(c_void_p)
 )
 SEEK_CALLBACK = CFUNCTYPE(
-    c_longlong, c_int, c_void_p, c_longlong, c_int
+    c_longlong, c_void_p, c_void_p, c_longlong, c_int
 )
 OPEN_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
 CLOSE_CALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p)
