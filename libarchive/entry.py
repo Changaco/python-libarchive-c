@@ -42,9 +42,17 @@ class ArchiveEntry:
     def uid(self):
         return ffi.entry_uid(self._entry_p)
 
+    @uid.setter
+    def uid(self, uid):
+        ffi.entry_set_uid(self._entry_p, uid)
+
     @property
     def gid(self):
         return ffi.entry_gid(self._entry_p)
+
+    @gid.setter
+    def gid(self, gid):
+        ffi.entry_set_gid(self._entry_p, gid)
 
     def get_blocks(self, block_size=ffi.page_size):
         archive_p = self._archive_p

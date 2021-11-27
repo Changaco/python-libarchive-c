@@ -78,6 +78,7 @@ class ArchiveWrite:
         self, entry_path, entry_size, entry_data,
         filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
         atime=None, mtime=None, ctime=None, birthtime=None,
+        uid=None, gid=None,
     ):
         """"Add file from memory to archive.
 
@@ -99,6 +100,8 @@ class ArchiveWrite:
             birthtime (int | Tuple[int]):
                 the file's birth time (for archive formats that support it),
                 in seconds or as a tuple (seconds, nanoseconds)
+            uid (int): the file owner's identifier
+            gid (int): the file group's identifier
         """
         archive_pointer = self._pointer
 
@@ -116,6 +119,11 @@ class ArchiveWrite:
         entry_set_size(archive_entry_pointer, entry_size)
         entry_set_filetype(archive_entry_pointer, filetype)
         entry_set_perm(archive_entry_pointer, permission)
+
+        if uid is not None:
+            archive_entry.uid = uid
+        if gid is not None:
+            archive_entry.gid = gid
 
         if atime is not None:
             if not isinstance(atime, tuple):

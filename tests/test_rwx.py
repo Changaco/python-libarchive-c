@@ -161,7 +161,8 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
     with libarchive.custom_writer(write_callback, archfmt) as archive:
         archive.add_file_from_memory(
             entry_path, entry_size, entry_data,
-            atime=atime, mtime=mtime, ctime=ctime, birthtime=btime
+            atime=atime, mtime=mtime, ctime=ctime, birthtime=btime,
+            uid=1000, gid=1000,
         )
 
     buf = b''.join(blocks)
@@ -178,3 +179,5 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
                 assert archive_entry.birthtime in (
                     btime[0], format_time(*btime)
                 )
+            assert archive_entry.uid == 1000
+            assert archive_entry.gid == 1000
