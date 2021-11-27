@@ -47,9 +47,11 @@ class ArchiveEntry:
             self.modify(**attributes)
 
     def __del__(self):
+        """Free the C struct"""
         ffi.entry_free(self._entry_p)
 
     def __str__(self):
+        """Returns the file's path"""
         return self.pathname
 
     def modify(self, **attributes):
@@ -129,7 +131,16 @@ class ArchiveEntry:
         ffi.entry_update_gname_utf8(self._entry_p, value)
 
     def get_blocks(self, block_size=ffi.page_size):
+        """Read the file's content, keeping only one chunk in memory at a time.
+
+        Don't do anything like `list(entry.get_blocks())`, it would silently fail.
+
+        Args:
+            block_size (int): the buffer's size, in bytes
+        """
         archive_p = self._archive_p
+        if not archive_p:
+            raise TypeError("this entry isn't linked to any content")
         buf = create_string_buffer(block_size)
         read = ffi.read_data
         while 1:
@@ -200,8 +211,8 @@ class ArchiveEntry:
             self.set_atime(int(seconds), int(fraction * 1_000_000_000))
 
     def set_atime(self, timestamp_sec, timestamp_nsec):
-        return ffi.entry_set_atime(self._entry_p,
-                                   timestamp_sec, timestamp_nsec)
+        "Kept for backward compatibility. `entry.atime = ...` is supported now."
+        return ffi.entry_set_atime(self._entry_p, timestamp_sec, timestamp_nsec)
 
     @property
     def mtime(self):
@@ -224,8 +235,8 @@ class ArchiveEntry:
             self.set_mtime(int(seconds), int(fraction * 1_000_000_000))
 
     def set_mtime(self, timestamp_sec, timestamp_nsec):
-        return ffi.entry_set_mtime(self._entry_p,
-                                   timestamp_sec, timestamp_nsec)
+        "Kept for backward compatibility. `entry.mtime = ...` is supported now."
+        return ffi.entry_set_mtime(self._entry_p, timestamp_sec, timestamp_nsec)
 
     @property
     def ctime(self):
@@ -248,8 +259,8 @@ class ArchiveEntry:
             self.set_ctime(int(seconds), int(fraction * 1_000_000_000))
 
     def set_ctime(self, timestamp_sec, timestamp_nsec):
-        return ffi.entry_set_ctime(self._entry_p,
-                                   timestamp_sec, timestamp_nsec)
+        "Kept for backward compatibility. `entry.ctime = ...` is supported now."
+        return ffi.entry_set_ctime(self._entry_p, timestamp_sec, timestamp_nsec)
 
     @property
     def birthtime(self):
@@ -272,6 +283,7 @@ class ArchiveEntry:
             self.set_birthtime(int(seconds), int(fraction * 1_000_000_000))
 
     def set_birthtime(self, timestamp_sec, timestamp_nsec=0):
+        "Kept for backward compatibility. `entry.birthtime = ...` is supported now."
         return ffi.entry_set_birthtime(
             self._entry_p, timestamp_sec, timestamp_nsec
         )
@@ -331,6 +343,7 @@ class ArchiveEntry:
 
     @property
     def strmode(self):
+        """The file's mode as a string, e.g. '?rwxrwx---'"""
         # note we strip the mode because archive_entry_strmode
         # returns a trailing space: strcpy(bp, "?rwxrwxrwx ");
         return ffi.entry_strmode(self._entry_p).strip()

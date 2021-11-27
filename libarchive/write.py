@@ -191,6 +191,11 @@ def custom_writer(
     open_func=None, close_func=None, block_size=page_size,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and send it in chunks to the `write_func` function.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
 
     def write_cb_internal(archive_p, context, buffer_, length):
         data = cast(buffer_, POINTER(c_char * length))[0]
@@ -213,6 +218,11 @@ def fd_writer(
     fd, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a file descriptor.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_fd(archive_p, fd)
@@ -224,6 +234,11 @@ def file_writer(
     filepath, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a file.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
@@ -235,6 +250,11 @@ def memory_writer(
     buf, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a buffer.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         used = byref(c_size_t())
