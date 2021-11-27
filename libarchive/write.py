@@ -3,7 +3,7 @@ from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
 import warnings
 
 from . import ffi
-from .entry import ArchiveEntry, new_archive_entry
+from .entry import ArchiveEntry
 from .ffi import (
     OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, NO_OPEN_CB, NO_CLOSE_CB,
     REGULAR_FILE, DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
@@ -53,26 +53,26 @@ class ArchiveWrite:
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
 
-        with new_archive_entry() as entry_p:
-            entry = ArchiveEntry(None, entry_p)
-            for path in paths:
-                with new_archive_read_disk(path, **kw) as read_p:
-                    while 1:
-                        r = read_next_header2(read_p, entry_p)
-                        if r == ARCHIVE_EOF:
-                            break
-                        entry.pathname = entry.pathname.lstrip('/')
-                        read_disk_descend(read_p)
-                        write_header(write_p, entry_p)
-                        if entry.isreg:
-                            with open(entry_sourcepath(entry_p), 'rb') as f:
-                                while 1:
-                                    data = f.read(block_size)
-                                    if not data:
-                                        break
-                                    write_data(write_p, data, len(data))
-                        write_finish_entry(write_p)
-                        entry_clear(entry_p)
+        entry = ArchiveEntry(None)
+        entry_p = entry._entry_p
+        for path in paths:
+            with new_archive_read_disk(path, **kw) as read_p:
+                while 1:
+                    r = read_next_header2(read_p, entry_p)
+                    if r == ARCHIVE_EOF:
+                        break
+                    entry.pathname = entry.pathname.lstrip('/')
+                    read_disk_descend(read_p)
+                    write_header(write_p, entry_p)
+                    if entry.isreg:
+                        with open(entry_sourcepath(entry_p), 'rb') as f:
+                            while 1:
+                                data = f.read(block_size)
+                                if not data:
+                                    break
+                                write_data(write_p, data, len(data))
+                    write_finish_entry(write_p)
+                    entry_clear(entry_p)
 
     def add_file_from_memory(
         self, entry_path, entry_size, entry_data,
@@ -110,39 +110,38 @@ class ArchiveWrite:
                 "entry_data: expected bytes, got %r" % type(entry_data)
             )
 
-        with new_archive_entry() as archive_entry_pointer:
-            archive_entry = ArchiveEntry(None, archive_entry_pointer)
+        archive_entry = ArchiveEntry(None)
+        archive_entry_pointer = archive_entry._entry_p
 
-            archive_entry.pathname = entry_path
-            entry_set_size(archive_entry_pointer, entry_size)
-            entry_set_filetype(archive_entry_pointer, filetype)
-            entry_set_perm(archive_entry_pointer, permission)
+        archive_entry.pathname = entry_path
+        entry_set_size(archive_entry_pointer, entry_size)
+        entry_set_filetype(archive_entry_pointer, filetype)
+        entry_set_perm(archive_entry_pointer, permission)
 
-            if atime is not None:
-                if not isinstance(atime, tuple):
-                    atime = (atime, 0)
-                archive_entry.set_atime(*atime)
-            if mtime is not None:
-                if not isinstance(mtime, tuple):
-                    mtime = (mtime, 0)
-                archive_entry.set_mtime(*mtime)
-            if ctime is not None:
-                if not isinstance(ctime, tuple):
-                    ctime = (ctime, 0)
-                archive_entry.set_ctime(*ctime)
-            if birthtime is not None:
-                if not isinstance(birthtime, tuple):
-                    birthtime = (birthtime, 0)
-                archive_entry.set_birthtime(*birthtime)
-            write_header(archive_pointer, archive_entry_pointer)
+        if atime is not None:
+            if not isinstance(atime, tuple):
+                atime = (atime, 0)
+            archive_entry.set_atime(*atime)
+        if mtime is not None:
+            if not isinstance(mtime, tuple):
+                mtime = (mtime, 0)
+            archive_entry.set_mtime(*mtime)
+        if ctime is not None:
+            if not isinstance(ctime, tuple):
+                ctime = (ctime, 0)
+            archive_entry.set_ctime(*ctime)
+        if birthtime is not None:
+            if not isinstance(birthtime, tuple):
+                birthtime = (birthtime, 0)
+            archive_entry.set_birthtime(*birthtime)
+        write_header(archive_pointer, archive_entry_pointer)
 
-            for chunk in entry_data:
-                if not chunk:
-                    break
-                write_data(archive_pointer, chunk, len(chunk))
+        for chunk in entry_data:
+            if not chunk:
+                break
+            write_data(archive_pointer, chunk, len(chunk))
 
-            write_finish_entry(archive_pointer)
-            entry_clear(archive_entry_pointer)
+        write_finish_entry(archive_pointer)
 
 
 @contextmanager

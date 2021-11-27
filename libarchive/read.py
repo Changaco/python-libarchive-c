@@ -7,7 +7,7 @@ from .ffi import (
     ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK, SEEK_CALLBACK,
     NO_OPEN_CB, NO_CLOSE_CB, page_size,
 )
-from .entry import ArchiveEntry, new_archive_entry
+from .entry import ArchiveEntry
 
 
 class ArchiveRead:
@@ -20,13 +20,12 @@ class ArchiveRead:
         """
         archive_p = self._pointer
         read_next_header2 = ffi.read_next_header2
-        with new_archive_entry() as entry_p:
-            entry = ArchiveEntry(archive_p, entry_p)
-            while 1:
-                r = read_next_header2(archive_p, entry_p)
-                if r == ARCHIVE_EOF:
-                    return
-                yield entry
+        while 1:
+            entry = ArchiveEntry(archive_p)
+            r = read_next_header2(archive_p, entry._entry_p)
+            if r == ARCHIVE_EOF:
+                return
+            yield entry
 
 
 @contextmanager

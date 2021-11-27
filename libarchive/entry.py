@@ -24,9 +24,12 @@ class ArchiveEntry:
 
     __slots__ = ('_archive_p', '_entry_p')
 
-    def __init__(self, archive_p, entry_p):
+    def __init__(self, archive_p):
         self._archive_p = archive_p
-        self._entry_p = entry_p
+        self._entry_p = ffi.entry_new()
+
+    def __del__(self):
+        ffi.entry_free(self._entry_p)
 
     def __str__(self):
         return self.pathname
