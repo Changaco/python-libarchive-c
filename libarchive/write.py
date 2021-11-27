@@ -81,25 +81,24 @@ class ArchiveWrite:
     ):
         """"Add file from memory to archive.
 
-        :param entry_path: where entry should be places in archive
-        :type entry_path: str
-        :param entry_size: entire size of entry in bytes
-        :type entry_size: int
-        :param entry_data: content of entry
-        :type entry_data: bytes or Iterable[bytes]
-        :param filetype: which type of file: normal, symlink etc.
-        should entry be created as
-        :type filetype: octal number
-        :param permission: with which permission should entry be created
-        :type permission: octal number
-        :param atime: Last access time
-        :type atime: int seconds or tuple (int seconds, int nanoseconds)
-        :param mtime: Last modified time
-        :type mtime: int seconds or tuple (int seconds, int nanoseconds)
-        :param ctime: Creation time
-        :type ctime: int seconds or tuple (int seconds, int nanoseconds)
-        :param birthtime: Birth time (for archive formats that support it)
-        :type birthtime: int seconds or tuple (int seconds, int nanoseconds)
+        Args:
+            entry_path (str): the file's path
+            entry_size (int): the file's size, in bytes
+            entry_data (bytes | Iterable[bytes]): the file's content
+            filetype (int): the file's type (normal, symlink, etc.)
+            permission (int): the file's permissions
+            atime (int | Tuple[int]):
+                the file's most recent access time,
+                in seconds or as a tuple (seconds, nanoseconds)
+            mtime (int | Tuple[int]):
+                the file's most recent modification time,
+                in seconds or as a tuple (seconds, nanoseconds)
+            ctime (int | Tuple[int]):
+                the file's creation time,
+                in seconds or as a tuple (seconds, nanoseconds)
+            birthtime (int | Tuple[int]):
+                the file's birth time (for archive formats that support it),
+                in seconds or as a tuple (seconds, nanoseconds)
         """
         archive_pointer = self._pointer
 
