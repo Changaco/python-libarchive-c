@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from ctypes import c_char_p, create_string_buffer
+import math
 
 from . import ffi
 
@@ -37,6 +38,10 @@ class ArchiveEntry:
     @property
     def filetype(self):
         return ffi.entry_filetype(self._entry_p)
+
+    @filetype.setter
+    def filetype(self, value):
+        ffi.entry_set_filetype(self._entry_p, value)
 
     @property
     def uid(self):
@@ -89,16 +94,6 @@ class ArchiveEntry:
     def issym(self):
         return self.filetype & 0o170000 == 0o120000
 
-    def _linkpath(self):
-        return (ffi.entry_symlink_w(self._entry_p) or
-                ffi.entry_hardlink_w(self._entry_p) or
-                ffi.entry_symlink(self._entry_p) or
-                ffi.entry_hardlink(self._entry_p))
-
-    # aliases to get the same api as tarfile
-    linkpath = property(_linkpath)
-    linkname = property(_linkpath)
-
     @property
     def isreg(self):
         return self.filetype & 0o170000 == 0o100000
@@ -121,6 +116,16 @@ class ArchiveEntry:
         nsec_val = ffi.entry_atime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
+    @atime.setter
+    def atime(self, value):
+        if isinstance(value, int):
+            self.set_atime(value)
+        elif isinstance(value, tuple):
+            self.set_atime(*value)
+        else:
+            seconds, fraction = math.modf(value)
+            self.set_atime(int(seconds), int(fraction * 1_000_000_000))
+
     def set_atime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_atime(self._entry_p,
                                    timestamp_sec, timestamp_nsec)
@@ -130,6 +135,16 @@ class ArchiveEntry:
         sec_val = ffi.entry_mtime(self._entry_p)
         nsec_val = ffi.entry_mtime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
+
+    @mtime.setter
+    def mtime(self, value):
+        if isinstance(value, int):
+            self.set_mtime(value)
+        elif isinstance(value, tuple):
+            self.set_mtime(*value)
+        else:
+            seconds, fraction = math.modf(value)
+            self.set_mtime(int(seconds), int(fraction * 1_000_000_000))
 
     def set_mtime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_mtime(self._entry_p,
@@ -141,6 +156,16 @@ class ArchiveEntry:
         nsec_val = ffi.entry_ctime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
+    @ctime.setter
+    def ctime(self, value):
+        if isinstance(value, int):
+            self.set_ctime(value)
+        elif isinstance(value, tuple):
+            self.set_ctime(*value)
+        else:
+            seconds, fraction = math.modf(value)
+            self.set_ctime(int(seconds), int(fraction * 1_000_000_000))
+
     def set_ctime(self, timestamp_sec, timestamp_nsec):
         return ffi.entry_set_ctime(self._entry_p,
                                    timestamp_sec, timestamp_nsec)
@@ -151,32 +176,64 @@ class ArchiveEntry:
         nsec_val = ffi.entry_birthtime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
-    def set_birthtime(self, timestamp_sec, timestamp_nsec):
-        return ffi.entry_set_birthtime(self._entry_p,
-                                       timestamp_sec, timestamp_nsec)
+    @birthtime.setter
+    def birthtime(self, value):
+        if isinstance(value, int):
+            self.set_birthtime(value)
+        elif isinstance(value, tuple):
+            self.set_birthtime(*value)
+        else:
+            seconds, fraction = math.modf(value)
+            self.set_birthtime(int(seconds), int(fraction * 1_000_000_000))
 
-    def _getpathname(self):
+    def set_birthtime(self, timestamp_sec, timestamp_nsec=0):
+        return ffi.entry_set_birthtime(
+            self._entry_p, timestamp_sec, timestamp_nsec
+        )
+
+    @property
+    def pathname(self):
         return (ffi.entry_pathname_w(self._entry_p) or
                 ffi.entry_pathname(self._entry_p))
 
-    def _setpathname(self, value):
+    @pathname.setter
+    def pathname(self, value):
         if not isinstance(value, bytes):
             value = value.encode('utf8')
         ffi.entry_update_pathname_utf8(self._entry_p, c_char_p(value))
 
-    pathname = property(_getpathname, _setpathname)
-    # aliases to get the same api as tarfile
-    path = property(_getpathname, _setpathname)
-    name = property(_getpathname, _setpathname)
+    @property
+    def linkpath(self):
+        return (ffi.entry_symlink_w(self._entry_p) or
+                ffi.entry_hardlink_w(self._entry_p) or
+                ffi.entry_symlink(self._entry_p) or
+                ffi.entry_hardlink(self._entry_p))
+
+    @linkpath.setter
+    def linkpath(self, value):
+        ffi.entry_update_link_utf8(self._entry_p, value)
+
+    # aliases for compatibility with the standard `tarfile` module
+    path = property(pathname.fget, pathname.fset, doc="alias of pathname")
+    name = path
+    linkname = property(linkpath.fget, linkpath.fset, doc="alias of linkpath")
 
     @property
     def size(self):
         if ffi.entry_size_is_set(self._entry_p):
             return ffi.entry_size(self._entry_p)
 
+    @size.setter
+    def size(self, value):
+        ffi.entry_set_size(self._entry_p, value)
+
     @property
     def mode(self):
         return ffi.entry_mode(self._entry_p)
+
+    @mode.setter
+    def mode(self, value):
+        ffi.entry_set_mode(self._entry_p, value)
 
     @property
     def strmode(self):
@@ -185,9 +242,25 @@ class ArchiveEntry:
         return ffi.entry_strmode(self._entry_p).strip()
 
     @property
+    def perm(self):
+        return ffi.entry_perm(self._entry_p)
+
+    @perm.setter
+    def perm(self, value):
+        ffi.entry_set_perm(self._entry_p, value)
+
+    @property
     def rdevmajor(self):
         return ffi.entry_rdevmajor(self._entry_p)
+
+    @rdevmajor.setter
+    def rdevmajor(self, value):
+        ffi.entry_set_rdevmajor(self._entry_p, value)
 
     @property
     def rdevminor(self):
         return ffi.entry_rdevminor(self._entry_p)
+
+    @rdevminor.setter
+    def rdevminor(self, value):
+        ffi.entry_set_rdevminor(self._entry_p, value)
