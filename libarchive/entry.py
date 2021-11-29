@@ -70,6 +70,26 @@ class ArchiveEntry:
     def gid(self, gid):
         ffi.entry_set_gid(self._entry_p, gid)
 
+    @property
+    def uname(self):
+        return ffi.entry_uname_w(self._entry_p)
+
+    @uname.setter
+    def uname(self, value):
+        if not isinstance(value, bytes):
+            value = value.encode('utf8')
+        ffi.entry_update_uname_utf8(self._entry_p, value)
+
+    @property
+    def gname(self):
+        return ffi.entry_gname_w(self._entry_p)
+
+    @gname.setter
+    def gname(self, value):
+        if not isinstance(value, bytes):
+            value = value.encode('utf8')
+        ffi.entry_update_gname_utf8(self._entry_p, value)
+
     def get_blocks(self, block_size=ffi.page_size):
         archive_p = self._archive_p
         buf = create_string_buffer(block_size)

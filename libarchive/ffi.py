@@ -198,6 +198,8 @@ ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 ffi('entry_uid', [c_archive_entry_p], c_longlong)
 ffi('entry_gid', [c_archive_entry_p], c_longlong)
+ffi('entry_uname_w', [c_archive_entry_p], c_wchar_p)
+ffi('entry_gname_w', [c_archive_entry_p], c_wchar_p)
 
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
 ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
@@ -220,6 +222,8 @@ ffi('entry_unset_birthtime', [c_archive_entry_p], None)
 
 ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
 ffi('entry_update_link_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
+ffi('entry_update_uname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
+ffi('entry_update_gname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
 
 ffi('entry_clear', [c_archive_entry_p], c_archive_entry_p)
 ffi('entry_free', [c_archive_entry_p], None)
