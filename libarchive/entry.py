@@ -1,8 +1,19 @@
 from contextlib import contextmanager
 from ctypes import c_char_p, create_string_buffer
+from enum import IntEnum
 import math
 
 from . import ffi
+
+
+class FileType(IntEnum):
+    NAMED_PIPE     = AE_IFIFO  = 0o010000  # noqa: E221
+    CHAR_DEVICE    = AE_IFCHR  = 0o020000  # noqa: E221
+    DIRECTORY      = AE_IFDIR  = 0o040000  # noqa: E221
+    BLOCK_DEVICE   = AE_IFBLK  = 0o060000  # noqa: E221
+    REGULAR_FILE   = AE_IFREG  = 0o100000  # noqa: E221
+    SYMBOLINK_LINK = AE_IFLNK  = 0o120000  # noqa: E221
+    SOCKET         = AE_IFSOCK = 0o140000  # noqa: E221
 
 
 @contextmanager
