@@ -36,15 +36,53 @@ class ArchiveEntry:
 
     __slots__ = ('_archive_p', '_entry_p')
 
-    def __init__(self, archive_p):
+    def __init__(self, archive_p=None, **attributes):
+        """Allocate memory for an `archive_entry` struct.
+
+        The attributes are passed to the `modify` method.
+        """
         self._archive_p = archive_p
         self._entry_p = ffi.entry_new()
+        if attributes:
+            self.modify(**attributes)
 
     def __del__(self):
         ffi.entry_free(self._entry_p)
 
     def __str__(self):
         return self.pathname
+
+    def modify(self, **attributes):
+        """Convenience method to modify the entry's attributes.
+
+        Args:
+            filetype (int): the file's type, see the `FileType` class for values
+            pathname (str): the file's path
+            linkpath (str): the other path of the file, if the file is a link
+            size (int | None): the file's size, in bytes
+            perm (int): the file's permissions in standard Unix format, e.g. 0o640
+            uid (int): the file owner's numerical identifier
+            gid (int): the file group's numerical identifier
+            uname (str | bytes): the file owner's name
+            gname (str | bytes): the file group's name
+            atime (int | Tuple[int, int] | float | None):
+                the file's most recent access time,
+                either in seconds or as a tuple (seconds, nanoseconds)
+            mtime (int | Tuple[int, int] | float | None):
+                the file's most recent modification time,
+                either in seconds or as a tuple (seconds, nanoseconds)
+            ctime (int | Tuple[int, int] | float | None):
+                the file's most recent metadata change time,
+                either in seconds or as a tuple (seconds, nanoseconds)
+            birthtime (int | Tuple[int, int] | float | None):
+                the file's creation time (for archive formats that support it),
+                either in seconds or as a tuple (seconds, nanoseconds)
+            rdev (int | Tuple[int, int]): device number, if the file is a device
+            rdevmajor (int): major part of the device number
+            rdevminor (int): minor part of the device number
+        """
+        for name, value in attributes.items():
+            setattr(self, name, value)
 
     @property
     def filetype(self):

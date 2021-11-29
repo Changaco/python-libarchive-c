@@ -1,15 +1,16 @@
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
+from posixpath import join
 import warnings
 
 from . import ffi
-from .entry import ArchiveEntry
+from .entry import ArchiveEntry, FileType
 from .ffi import (
     OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, NO_OPEN_CB, NO_CLOSE_CB,
-    REGULAR_FILE, DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
+    ARCHIVE_EOF,
     page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
     read_next_header2, read_disk_descend, read_free, write_header, write_data,
-    write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm,
+    write_finish_entry,
     read_disk_set_behavior
 )
 
@@ -42,10 +43,26 @@ class ArchiveWrite:
                 write_data(write_p, block, len(block))
             write_finish_entry(write_p)
 
-    def add_files(self, *paths, **kw):
-        """Read the given paths from disk and add them to the archive.
+    def add_files(
+        self, *paths, flags=0, lookup=False, pathname=None, **attributes
+    ):
+        """Read files through the OS and add them to the archive.
 
-        The keyword arguments (`**kw`) are passed to `new_archive_read_disk`.
+        Args:
+            paths (str): the paths of the files to add to the archive
+            flags (int):
+                passed to the C function `archive_read_disk_set_behavior`;
+                use the `libarchive.flags.READDISK_*` constants
+            lookup (bool):
+                when True, the C function `archive_read_disk_set_standard_lookup`
+                is called to enable the lookup of user and group names
+            pathname (str | None):
+                the path of the file in the archive, defaults to the source path
+            attributes (dict): passed to `ArchiveEntry.modify()`
+
+        Raises:
+            ArchiveError: if a file doesn't exist or can't be accessed, or if
+                          adding it to the archive fails
         """
         write_p = self._pointer
 
@@ -53,15 +70,28 @@ class ArchiveWrite:
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
 
-        entry = ArchiveEntry(None)
+        entry = ArchiveEntry()
         entry_p = entry._entry_p
+        destination_path = attributes.pop('pathname', None)
         for path in paths:
-            with new_archive_read_disk(path, **kw) as read_p:
+            with new_archive_read_disk(path, flags, lookup) as read_p:
                 while 1:
                     r = read_next_header2(read_p, entry_p)
                     if r == ARCHIVE_EOF:
                         break
-                    entry.pathname = entry.pathname.lstrip('/')
+                    entry_path = entry.pathname
+                    if destination_path:
+                        if entry_path == path:
+                            entry_path = destination_path
+                        else:
+                            assert entry_path.startswith(path)
+                            entry_path = join(
+                                destination_path,
+                                entry_path[len(path):].lstrip('/')
+                            )
+                    entry.pathname = entry_path.lstrip('/')
+                    if attributes:
+                        entry.modify(**attributes)
                     read_disk_descend(read_p)
                     write_header(write_p, entry_p)
                     if entry.isreg:
@@ -74,11 +104,14 @@ class ArchiveWrite:
                     write_finish_entry(write_p)
                     entry_clear(entry_p)
 
+    def add_file(self, path, **kw):
+        "Single-path alias of `add_files()`"
+        return self.add_files(path, **kw)
+
     def add_file_from_memory(
         self, entry_path, entry_size, entry_data,
-        filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
-        atime=None, mtime=None, ctime=None, birthtime=None,
-        uid=None, gid=None,
+        filetype=FileType.REGULAR_FILE, permission=0o664,
+        **other_attributes
     ):
         """"Add file from memory to archive.
 
@@ -86,22 +119,9 @@ class ArchiveWrite:
             entry_path (str): the file's path
             entry_size (int): the file's size, in bytes
             entry_data (bytes | Iterable[bytes]): the file's content
-            filetype (int): the file's type (normal, symlink, etc.)
-            permission (int): the file's permissions
-            atime (int | Tuple[int]):
-                the file's most recent access time,
-                in seconds or as a tuple (seconds, nanoseconds)
-            mtime (int | Tuple[int]):
-                the file's most recent modification time,
-                in seconds or as a tuple (seconds, nanoseconds)
-            ctime (int | Tuple[int]):
-                the file's creation time,
-                in seconds or as a tuple (seconds, nanoseconds)
-            birthtime (int | Tuple[int]):
-                the file's birth time (for archive formats that support it),
-                in seconds or as a tuple (seconds, nanoseconds)
-            uid (int): the file owner's identifier
-            gid (int): the file group's identifier
+            filetype (int): see `libarchive.entry.ArchiveEntry.modify()`
+            permission (int): see `libarchive.entry.ArchiveEntry.modify()`
+            other_attributes: see `libarchive.entry.ArchiveEntry.modify()`
         """
         archive_pointer = self._pointer
 
@@ -112,36 +132,11 @@ class ArchiveWrite:
                 "entry_data: expected bytes, got %r" % type(entry_data)
             )
 
-        archive_entry = ArchiveEntry(None)
-        archive_entry_pointer = archive_entry._entry_p
-
-        archive_entry.pathname = entry_path
-        entry_set_size(archive_entry_pointer, entry_size)
-        entry_set_filetype(archive_entry_pointer, filetype)
-        entry_set_perm(archive_entry_pointer, permission)
-
-        if uid is not None:
-            archive_entry.uid = uid
-        if gid is not None:
-            archive_entry.gid = gid
-
-        if atime is not None:
-            if not isinstance(atime, tuple):
-                atime = (atime, 0)
-            archive_entry.set_atime(*atime)
-        if mtime is not None:
-            if not isinstance(mtime, tuple):
-                mtime = (mtime, 0)
-            archive_entry.set_mtime(*mtime)
-        if ctime is not None:
-            if not isinstance(ctime, tuple):
-                ctime = (ctime, 0)
-            archive_entry.set_ctime(*ctime)
-        if birthtime is not None:
-            if not isinstance(birthtime, tuple):
-                birthtime = (birthtime, 0)
-            archive_entry.set_birthtime(*birthtime)
-        write_header(archive_pointer, archive_entry_pointer)
+        entry = ArchiveEntry(
+            pathname=entry_path, size=entry_size, filetype=filetype,
+            perm=permission, **other_attributes
+        )
+        write_header(archive_pointer, entry._entry_p)
 
         for chunk in entry_data:
             if not chunk:

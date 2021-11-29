@@ -34,8 +34,6 @@ ARCHIVE_RETRY = -10   # Retry might succeed.
 ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
-REGULAR_FILE = 0o100000
-DEFAULT_UNIX_PERMISSION = 0o664
 
 
 # Callback types
