@@ -193,8 +193,14 @@ class ArchiveEntry:
 
     @property
     def pathname(self):
-        return (ffi.entry_pathname_w(self._entry_p) or
-                ffi.entry_pathname(self._entry_p))
+        path = ffi.entry_pathname_w(self._entry_p)
+        if not path:
+            path = ffi.entry_pathname(self._entry_p)
+            try:
+                path = path.decode()
+            except UnicodeError:
+                pass
+        return path
 
     @pathname.setter
     def pathname(self, value):
