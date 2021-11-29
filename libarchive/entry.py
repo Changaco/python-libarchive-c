@@ -112,13 +112,17 @@ class ArchiveEntry:
 
     @property
     def atime(self):
+        if not ffi.entry_atime_is_set(self._entry_p):
+            return None
         sec_val = ffi.entry_atime(self._entry_p)
         nsec_val = ffi.entry_atime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
     @atime.setter
     def atime(self, value):
-        if isinstance(value, int):
+        if value is None:
+            ffi.entry_unset_atime(self._entry_p)
+        elif isinstance(value, int):
             self.set_atime(value)
         elif isinstance(value, tuple):
             self.set_atime(*value)
@@ -132,13 +136,17 @@ class ArchiveEntry:
 
     @property
     def mtime(self):
+        if not ffi.entry_mtime_is_set(self._entry_p):
+            return None
         sec_val = ffi.entry_mtime(self._entry_p)
         nsec_val = ffi.entry_mtime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
     @mtime.setter
     def mtime(self, value):
-        if isinstance(value, int):
+        if value is None:
+            ffi.entry_unset_mtime(self._entry_p)
+        elif isinstance(value, int):
             self.set_mtime(value)
         elif isinstance(value, tuple):
             self.set_mtime(*value)
@@ -152,13 +160,17 @@ class ArchiveEntry:
 
     @property
     def ctime(self):
+        if not ffi.entry_ctime_is_set(self._entry_p):
+            return None
         sec_val = ffi.entry_ctime(self._entry_p)
         nsec_val = ffi.entry_ctime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
     @ctime.setter
     def ctime(self, value):
-        if isinstance(value, int):
+        if value is None:
+            ffi.entry_unset_ctime(self._entry_p)
+        elif isinstance(value, int):
             self.set_ctime(value)
         elif isinstance(value, tuple):
             self.set_ctime(*value)
@@ -172,13 +184,17 @@ class ArchiveEntry:
 
     @property
     def birthtime(self):
+        if not ffi.entry_birthtime_is_set(self._entry_p):
+            return None
         sec_val = ffi.entry_birthtime(self._entry_p)
         nsec_val = ffi.entry_birthtime_nsec(self._entry_p)
         return format_time(sec_val, nsec_val)
 
     @birthtime.setter
     def birthtime(self, value):
-        if isinstance(value, int):
+        if value is None:
+            ffi.entry_unset_birthtime(self._entry_p)
+        elif isinstance(value, int):
             self.set_birthtime(value)
         elif isinstance(value, tuple):
             self.set_birthtime(*value)
@@ -231,7 +247,10 @@ class ArchiveEntry:
 
     @size.setter
     def size(self, value):
-        ffi.entry_set_size(self._entry_p, value)
+        if value is None:
+            ffi.entry_unset_size(self._entry_p)
+        else:
+            ffi.entry_set_size(self._entry_p, value)
 
     @property
     def mode(self):
