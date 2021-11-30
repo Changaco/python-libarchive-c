@@ -31,6 +31,11 @@ class ArchiveRead:
     def bytes_read(self):
         return ffi.filter_bytes(self._pointer, -1)
 
+    @property
+    def filter_names(self):
+        count = ffi.filter_count(self._pointer)
+        return [ffi.filter_name(self._pointer, i) for i in range(count - 1)]
+
 
 @contextmanager
 def new_archive_read(format_name='all', filter_name='all', passphrase=None):
