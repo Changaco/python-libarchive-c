@@ -161,6 +161,7 @@ version_number = ffi('version_number', [], c_int, check_int)
 
 errno = ffi('errno', [c_archive_p], c_int)
 error_string = ffi('error_string', [c_archive_p], c_char_p)
+ffi('filter_bytes', [c_archive_p, c_int], c_longlong)
 
 # archive_entry
 

@@ -27,6 +27,10 @@ class ArchiveRead:
                 return
             yield entry
 
+    @property
+    def bytes_read(self):
+        return ffi.filter_bytes(self._pointer, -1)
+
 
 @contextmanager
 def new_archive_read(format_name='all', filter_name='all', passphrase=None):

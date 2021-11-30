@@ -184,6 +184,10 @@ def new_archive_write(format_name, filter_name=None, options='', passphrase=None
         ffi.write_free(archive_p)
         raise
 
+    @property
+    def bytes_written(self):
+        return ffi.filter_bytes(self._pointer, -1)
+
 
 @contextmanager
 def custom_writer(

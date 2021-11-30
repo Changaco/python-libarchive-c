@@ -77,16 +77,15 @@ source code or run ``help(libarchive.entry.ArchiveEntry)`` in a Python shell.
 Displaying progress
 ~~~~~~~~~~~~~~~~~~~
 
-The ``stream_reader`` function and the standard `tell <https://docs.python.org/3/library/io.html#io.IOBase.tell>`_ method can be used to estimate how much of an archive has been read by your program. Here's an example of a progress bar using `tqdm <https://pypi.org/project/tqdm/>`_::
+If your program processes large archives, you can keep track of its progress
+with the ``bytes_read`` attribute. Here's an example of a progress bar using
+`tqdm <https://pypi.org/project/tqdm/>`_::
 
     with tqdm(total=os.stat(archive_path).st_size, unit='bytes') as pbar, \
-         open(archive_path, 'rb') as file, \
-         libarchive.stream_reader(file) as archive:
+         libarchive.file_reader(archive_path) as archive:
         for entry in archive:
             ...
-            pbar.update(file.tell() - pbar.n)
-
-Of course this is only useful if your program processes large archives.
+            pbar.update(archive.bytes_read - pbar.n)
 
 Creating archives
 -----------------
