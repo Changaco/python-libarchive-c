@@ -1,6 +1,3 @@
-.. image:: https://travis-ci.org/Changaco/python-libarchive-c.svg
-  :target: https://travis-ci.org/Changaco/python-libarchive-c
-
 A Python interface to libarchive. It uses the standard ctypes_ module to
 dynamically load and access the C library.
 
