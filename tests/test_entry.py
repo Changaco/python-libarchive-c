@@ -7,7 +7,10 @@ from os import environ, stat
 from os.path import join
 import unicodedata
 
+import pytest
+
 from libarchive import memory_reader, memory_writer
+from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEntry
 
 from . import data_dir, get_entries, get_tarinfos
 
@@ -100,3 +103,35 @@ def check_entries(test_file, regen=False, ignore=''):
                 if isinstance(d[key], text_type):
                     d[key] = unicodedata.normalize('NFC', d[key])
         assert e1 == e2
+
+
+def test_the_life_cycle_of_archive_entries():
+    """Check that the `get_blocks` method only works on the current entry, and only once.
+    """
+    # Create a test archive in memory
+    buf = bytes(bytearray(10_000_000))
+    with memory_writer(buf, 'gnutar') as archive:
+        archive.add_files(
+            'README.rst',
+            'libarchive/__init__.py',
+            'libarchive/entry.py',
+        )
+    # Read multiple entries of the test archive and check how the evolve
+    with memory_reader(buf) as archive:
+        archive_iter = iter(archive)
+        entry1 = next(archive_iter)
+        assert type(entry1) is ArchiveEntry
+        for block in entry1.get_blocks():
+            pass
+        assert type(entry1) is ConsumedArchiveEntry
+        with pytest.raises(TypeError):
+            entry1.get_blocks()
+        entry2 = next(archive_iter)
+        assert type(entry2) is ArchiveEntry
+        assert type(entry1) is PassedArchiveEntry
+        with pytest.raises(TypeError):
+            entry1.get_blocks()
+        entry3 = next(archive_iter)
+        assert type(entry3) is ArchiveEntry
+        assert type(entry2) is PassedArchiveEntry
+        assert type(entry1) is PassedArchiveEntry

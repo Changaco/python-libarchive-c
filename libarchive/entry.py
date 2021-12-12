@@ -148,6 +148,7 @@ class ArchiveEntry:
             if r == 0:
                 break
             yield buf.raw[0:r]
+        self.__class__ = ConsumedArchiveEntry
 
     @property
     def isblk(self):
@@ -387,3 +388,19 @@ class ArchiveEntry:
     @property
     def format_name(self):
         return ffi.format_name(self._pointer)
+
+
+class ConsumedArchiveEntry(ArchiveEntry):
+
+    __slots__ = ()
+
+    def get_blocks(self, **kw):
+        raise TypeError("the content of this entry has already been read")
+
+
+class PassedArchiveEntry(ArchiveEntry):
+
+    __slots__ = ()
+
+    def get_blocks(self, **kw):
+        raise TypeError("this entry is passed, it's too late to read its content")

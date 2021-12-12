@@ -7,7 +7,7 @@ from .ffi import (
     ARCHIVE_EOF, OPEN_CALLBACK, READ_CALLBACK, CLOSE_CALLBACK, SEEK_CALLBACK,
     NO_OPEN_CB, NO_CLOSE_CB, page_size,
 )
-from .entry import ArchiveEntry
+from .entry import ArchiveEntry, PassedArchiveEntry
 
 
 class ArchiveRead:
@@ -26,6 +26,7 @@ class ArchiveRead:
             if r == ARCHIVE_EOF:
                 return
             yield entry
+            entry.__class__ = PassedArchiveEntry
 
     @property
     def bytes_read(self):
