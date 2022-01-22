@@ -34,8 +34,6 @@ ARCHIVE_RETRY = -10   # Retry might succeed.
 ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
-REGULAR_FILE = 0o100000
-DEFAULT_UNIX_PERMISSION = 0o664
 
 
 # Callback types
@@ -163,6 +161,10 @@ version_number = ffi('version_number', [], c_int, check_int)
 
 errno = ffi('errno', [c_archive_p], c_int)
 error_string = ffi('error_string', [c_archive_p], c_char_p)
+ffi('filter_bytes', [c_archive_p, c_int], c_longlong)
+ffi('filter_count', [c_archive_p], c_int)
+ffi('filter_name', [c_archive_p, c_int], c_char_p)
+ffi('format_name', [c_archive_p], c_char_p)
 
 # archive_entry
 
@@ -177,6 +179,10 @@ ffi('entry_atime_nsec', [c_archive_entry_p], c_long)
 ffi('entry_birthtime_nsec', [c_archive_entry_p], c_long)
 ffi('entry_mtime_nsec', [c_archive_entry_p], c_long)
 ffi('entry_ctime_nsec', [c_archive_entry_p], c_long)
+ffi('entry_atime_is_set', [c_archive_entry_p], c_int)
+ffi('entry_birthtime_is_set', [c_archive_entry_p], c_int)
+ffi('entry_mtime_is_set', [c_archive_entry_p], c_int)
+ffi('entry_ctime_is_set', [c_archive_entry_p], c_int)
 ffi('entry_pathname', [c_archive_entry_p], c_char_p)
 ffi('entry_pathname_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_sourcepath', [c_archive_entry_p], c_char_p)
@@ -184,24 +190,42 @@ ffi('entry_size', [c_archive_entry_p], c_longlong)
 ffi('entry_size_is_set', [c_archive_entry_p], c_int)
 ffi('entry_mode', [c_archive_entry_p], c_int)
 ffi('entry_strmode', [c_archive_entry_p], c_char_p)
+ffi('entry_perm', [c_archive_entry_p], c_int)
 ffi('entry_hardlink', [c_archive_entry_p], c_char_p)
 ffi('entry_hardlink_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_symlink', [c_archive_entry_p], c_char_p)
 ffi('entry_symlink_w', [c_archive_entry_p], c_wchar_p)
+ffi('entry_rdev', [c_archive_entry_p], c_uint)
 ffi('entry_rdevmajor', [c_archive_entry_p], c_uint)
 ffi('entry_rdevminor', [c_archive_entry_p], c_uint)
 ffi('entry_uid', [c_archive_entry_p], c_longlong)
 ffi('entry_gid', [c_archive_entry_p], c_longlong)
+ffi('entry_uname_w', [c_archive_entry_p], c_wchar_p)
+ffi('entry_gname_w', [c_archive_entry_p], c_wchar_p)
 
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
 ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
+ffi('entry_set_uid', [c_archive_entry_p, c_longlong], None)
+ffi('entry_set_gid', [c_archive_entry_p, c_longlong], None)
+ffi('entry_set_mode', [c_archive_entry_p, c_int], None)
 ffi('entry_set_perm', [c_archive_entry_p, c_int], None)
 ffi('entry_set_atime', [c_archive_entry_p, c_time_t, c_long], None)
 ffi('entry_set_mtime', [c_archive_entry_p, c_time_t, c_long], None)
 ffi('entry_set_ctime', [c_archive_entry_p, c_time_t, c_long], None)
 ffi('entry_set_birthtime', [c_archive_entry_p, c_time_t, c_long], None)
+ffi('entry_set_rdev', [c_archive_entry_p, c_uint], None)
+ffi('entry_set_rdevmajor', [c_archive_entry_p, c_uint], None)
+ffi('entry_set_rdevminor', [c_archive_entry_p, c_uint], None)
+ffi('entry_unset_size', [c_archive_entry_p], None)
+ffi('entry_unset_atime', [c_archive_entry_p], None)
+ffi('entry_unset_mtime', [c_archive_entry_p], None)
+ffi('entry_unset_ctime', [c_archive_entry_p], None)
+ffi('entry_unset_birthtime', [c_archive_entry_p], None)
 
-ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], None)
+ffi('entry_update_pathname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
+ffi('entry_update_link_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
+ffi('entry_update_uname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
+ffi('entry_update_gname_utf8', [c_archive_entry_p, c_char_p], c_int, check_int)
 
 ffi('entry_clear', [c_archive_entry_p], c_archive_entry_p)
 ffi('entry_free', [c_archive_entry_p], None)

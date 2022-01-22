@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from ctypes import byref, c_longlong, c_size_t, c_void_p
+import os
 
 from .ffi import (
     write_disk_new, write_disk_set_options, write_free, write_header,
@@ -27,6 +28,12 @@ EXTRACT_HFS_COMPRESSION_FORCED = 0x8000
 EXTRACT_SECURE_NOABSOLUTEPATHS = 0x10000
 EXTRACT_CLEAR_NOCHANGE_FFLAGS = 0x20000
 
+PREVENT_ESCAPE = (
+    EXTRACT_SECURE_NOABSOLUTEPATHS |
+    EXTRACT_SECURE_NODOTDOT |
+    EXTRACT_SECURE_SYMLINKS
+)
+
 
 @contextmanager
 def new_archive_write_disk(flags):
@@ -38,9 +45,16 @@ def new_archive_write_disk(flags):
         write_free(archive_p)
 
 
-def extract_entries(entries, flags=0):
+def extract_entries(entries, flags=None):
     """Extracts the given archive entries into the current directory.
     """
+    if flags is None:
+        if os.getcwd() == '/':
+            # If the current directory is the root, then trying to prevent
+            # escaping is probably undesirable.
+            flags = 0
+        else:
+            flags = PREVENT_ESCAPE
     buff, size, offset = c_void_p(), c_size_t(), c_longlong()
     buff_p, size_p, offset_p = byref(buff), byref(size), byref(offset)
     with new_archive_write_disk(flags) as write_p:
@@ -55,20 +69,20 @@ def extract_entries(entries, flags=0):
             write_finish_entry(write_p)
 
 
-def extract_fd(fd, flags=0):
+def extract_fd(fd, flags=None):
     """Extracts an archive from a file descriptor into the current directory.
     """
     with fd_reader(fd) as archive:
         extract_entries(archive, flags)
 
 
-def extract_file(filepath, flags=0):
+def extract_file(filepath, flags=None):
     """Extracts an archive from a file into the current directory."""
     with file_reader(filepath) as archive:
         extract_entries(archive, flags)
 
 
-def extract_memory(buffer_, flags=0):
+def extract_memory(buffer_, flags=None):
     """Extracts an archive from memory into the current directory."""
     with memory_reader(buffer_) as archive:
         extract_entries(archive, flags)

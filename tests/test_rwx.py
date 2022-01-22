@@ -97,22 +97,6 @@ def test_custom_writer_and_stream_reader():
         check_archive(archive, tree)
 
 
-def test_custom_writer_and_seekable_stream_reader():
-    # Collect information on what should be in the archive
-    tree = treestat('libarchive')
-
-    # Create an archive of our libarchive/ directory
-    stream = io.BytesIO()
-    with libarchive.custom_writer(stream.write, '7zip') as archive:
-        archive.add_files('libarchive/')
-    stream.seek(0)
-
-    # Read the archive and check that the data is correct
-    with libarchive.seekable_stream_reader(stream, '7zip') as archive:
-        paths = [entry.name.rstrip('/') for entry in archive]
-        assert sorted(paths) == sorted(tree)
-
-
 @patch('libarchive.ffi.write_fail')
 def test_write_fail(write_fail_mock):
     buf = bytes(bytearray(1000000))
@@ -131,6 +115,14 @@ def test_write_not_fail(write_fail_mock):
     with memory_writer(buf, 'gnutar', 'xz') as archive:
         archive.add_files('libarchive/')
     assert not write_fail_mock.called
+
+
+def test_adding_nonexistent_file_to_archive():
+    stream = io.BytesIO()
+    with libarchive.custom_writer(stream.write, 'zip') as archive:
+        with pytest.raises(libarchive.ArchiveError):
+            archive.add_files('nonexistent')
+        archive.add_files('libarchive/')
 
 
 @pytest.mark.parametrize(
@@ -161,7 +153,8 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
     with libarchive.custom_writer(write_callback, archfmt) as archive:
         archive.add_file_from_memory(
             entry_path, entry_size, entry_data,
-            atime=atime, mtime=mtime, ctime=ctime, birthtime=btime
+            atime=atime, mtime=mtime, ctime=ctime, birthtime=btime,
+            uid=1000, gid=1000,
         )
 
     buf = b''.join(blocks)
@@ -178,3 +171,5 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
                 assert archive_entry.birthtime in (
                     btime[0], format_time(*btime)
                 )
+            assert archive_entry.uid == 1000
+            assert archive_entry.gid == 1000

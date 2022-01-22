@@ -1,15 +1,16 @@
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
+from posixpath import join
 import warnings
 
 from . import ffi
-from .entry import ArchiveEntry, new_archive_entry
+from .entry import ArchiveEntry, FileType
 from .ffi import (
     OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, NO_OPEN_CB, NO_CLOSE_CB,
-    REGULAR_FILE, DEFAULT_UNIX_PERMISSION, ARCHIVE_EOF,
+    ARCHIVE_EOF,
     page_size, entry_sourcepath, entry_clear, read_disk_new, read_disk_open_w,
     read_next_header2, read_disk_descend, read_free, write_header, write_data,
-    write_finish_entry, entry_set_size, entry_set_filetype, entry_set_perm,
+    write_finish_entry,
     read_disk_set_behavior
 )
 
@@ -42,10 +43,26 @@ class ArchiveWrite:
                 write_data(write_p, block, len(block))
             write_finish_entry(write_p)
 
-    def add_files(self, *paths, **kw):
-        """Read the given paths from disk and add them to the archive.
+    def add_files(
+        self, *paths, flags=0, lookup=False, pathname=None, **attributes
+    ):
+        """Read files through the OS and add them to the archive.
 
-        The keyword arguments (`**kw`) are passed to `new_archive_read_disk`.
+        Args:
+            paths (str): the paths of the files to add to the archive
+            flags (int):
+                passed to the C function `archive_read_disk_set_behavior`;
+                use the `libarchive.flags.READDISK_*` constants
+            lookup (bool):
+                when True, the C function `archive_read_disk_set_standard_lookup`
+                is called to enable the lookup of user and group names
+            pathname (str | None):
+                the path of the file in the archive, defaults to the source path
+            attributes (dict): passed to `ArchiveEntry.modify()`
+
+        Raises:
+            ArchiveError: if a file doesn't exist or can't be accessed, or if
+                          adding it to the archive fails
         """
         write_p = self._pointer
 
@@ -53,53 +70,58 @@ class ArchiveWrite:
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
 
-        with new_archive_entry() as entry_p:
-            entry = ArchiveEntry(None, entry_p)
-            for path in paths:
-                with new_archive_read_disk(path, **kw) as read_p:
-                    while 1:
-                        r = read_next_header2(read_p, entry_p)
-                        if r == ARCHIVE_EOF:
-                            break
-                        entry.pathname = entry.pathname.lstrip('/')
-                        read_disk_descend(read_p)
-                        write_header(write_p, entry_p)
-                        if entry.isreg:
-                            with open(entry_sourcepath(entry_p), 'rb') as f:
-                                while 1:
-                                    data = f.read(block_size)
-                                    if not data:
-                                        break
-                                    write_data(write_p, data, len(data))
-                        write_finish_entry(write_p)
-                        entry_clear(entry_p)
+        entry = ArchiveEntry()
+        entry_p = entry._entry_p
+        destination_path = attributes.pop('pathname', None)
+        for path in paths:
+            with new_archive_read_disk(path, flags, lookup) as read_p:
+                while 1:
+                    r = read_next_header2(read_p, entry_p)
+                    if r == ARCHIVE_EOF:
+                        break
+                    entry_path = entry.pathname
+                    if destination_path:
+                        if entry_path == path:
+                            entry_path = destination_path
+                        else:
+                            assert entry_path.startswith(path)
+                            entry_path = join(
+                                destination_path,
+                                entry_path[len(path):].lstrip('/')
+                            )
+                    entry.pathname = entry_path.lstrip('/')
+                    if attributes:
+                        entry.modify(**attributes)
+                    read_disk_descend(read_p)
+                    write_header(write_p, entry_p)
+                    if entry.isreg:
+                        with open(entry_sourcepath(entry_p), 'rb') as f:
+                            while 1:
+                                data = f.read(block_size)
+                                if not data:
+                                    break
+                                write_data(write_p, data, len(data))
+                    write_finish_entry(write_p)
+                    entry_clear(entry_p)
+
+    def add_file(self, path, **kw):
+        "Single-path alias of `add_files()`"
+        return self.add_files(path, **kw)
 
     def add_file_from_memory(
         self, entry_path, entry_size, entry_data,
-        filetype=REGULAR_FILE, permission=DEFAULT_UNIX_PERMISSION,
-        atime=None, mtime=None, ctime=None, birthtime=None,
+        filetype=FileType.REGULAR_FILE, permission=0o664,
+        **other_attributes
     ):
         """"Add file from memory to archive.
 
-        :param entry_path: where entry should be places in archive
-        :type entry_path: str
-        :param entry_size: entire size of entry in bytes
-        :type entry_size: int
-        :param entry_data: content of entry
-        :type entry_data: bytes or Iterable[bytes]
-        :param filetype: which type of file: normal, symlink etc.
-        should entry be created as
-        :type filetype: octal number
-        :param permission: with which permission should entry be created
-        :type permission: octal number
-        :param atime: Last access time
-        :type atime: int seconds or tuple (int seconds, int nanoseconds)
-        :param mtime: Last modified time
-        :type mtime: int seconds or tuple (int seconds, int nanoseconds)
-        :param ctime: Creation time
-        :type ctime: int seconds or tuple (int seconds, int nanoseconds)
-        :param birthtime: Birth time (for archive formats that support it)
-        :type birthtime: int seconds or tuple (int seconds, int nanoseconds)
+        Args:
+            entry_path (str): the file's path
+            entry_size (int): the file's size, in bytes
+            entry_data (bytes | Iterable[bytes]): the file's content
+            filetype (int): see `libarchive.entry.ArchiveEntry.modify()`
+            permission (int): see `libarchive.entry.ArchiveEntry.modify()`
+            other_attributes: see `libarchive.entry.ArchiveEntry.modify()`
         """
         archive_pointer = self._pointer
 
@@ -110,39 +132,18 @@ class ArchiveWrite:
                 "entry_data: expected bytes, got %r" % type(entry_data)
             )
 
-        with new_archive_entry() as archive_entry_pointer:
-            archive_entry = ArchiveEntry(None, archive_entry_pointer)
+        entry = ArchiveEntry(
+            pathname=entry_path, size=entry_size, filetype=filetype,
+            perm=permission, **other_attributes
+        )
+        write_header(archive_pointer, entry._entry_p)
 
-            archive_entry.pathname = entry_path
-            entry_set_size(archive_entry_pointer, entry_size)
-            entry_set_filetype(archive_entry_pointer, filetype)
-            entry_set_perm(archive_entry_pointer, permission)
+        for chunk in entry_data:
+            if not chunk:
+                break
+            write_data(archive_pointer, chunk, len(chunk))
 
-            if atime is not None:
-                if not isinstance(atime, tuple):
-                    atime = (atime, 0)
-                archive_entry.set_atime(*atime)
-            if mtime is not None:
-                if not isinstance(mtime, tuple):
-                    mtime = (mtime, 0)
-                archive_entry.set_mtime(*mtime)
-            if ctime is not None:
-                if not isinstance(ctime, tuple):
-                    ctime = (ctime, 0)
-                archive_entry.set_ctime(*ctime)
-            if birthtime is not None:
-                if not isinstance(birthtime, tuple):
-                    birthtime = (birthtime, 0)
-                archive_entry.set_birthtime(*birthtime)
-            write_header(archive_pointer, archive_entry_pointer)
-
-            for chunk in entry_data:
-                if not chunk:
-                    break
-                write_data(archive_pointer, chunk, len(chunk))
-
-            write_finish_entry(archive_pointer)
-            entry_clear(archive_entry_pointer)
+        write_finish_entry(archive_pointer)
 
 
 @contextmanager
@@ -183,6 +184,10 @@ def new_archive_write(format_name, filter_name=None, options='', passphrase=None
         ffi.write_free(archive_p)
         raise
 
+    @property
+    def bytes_written(self):
+        return ffi.filter_bytes(self._pointer, -1)
+
 
 @contextmanager
 def custom_writer(
@@ -190,6 +195,11 @@ def custom_writer(
     open_func=None, close_func=None, block_size=page_size,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and send it in chunks to the `write_func` function.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
 
     def write_cb_internal(archive_p, context, buffer_, length):
         data = cast(buffer_, POINTER(c_char * length))[0]
@@ -212,6 +222,11 @@ def fd_writer(
     fd, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a file descriptor.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_fd(archive_p, fd)
@@ -223,6 +238,11 @@ def file_writer(
     filepath, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a file.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
@@ -234,6 +254,11 @@ def memory_writer(
     buf, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
 ):
+    """Create an archive and write it into a buffer.
+
+    For formats and filters, see `WRITE_FORMATS` and `WRITE_FILTERS` in the
+    `libarchive.ffi` module.
+    """
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         used = byref(c_size_t())
