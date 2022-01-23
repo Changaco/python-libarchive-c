@@ -12,16 +12,18 @@ from .entry import ArchiveEntry, PassedArchiveEntry
 
 class ArchiveRead:
 
-    def __init__(self, archive_p):
+    def __init__(self, archive_p, header_codec='utf-8'):
         self._pointer = archive_p
+        self.header_codec = header_codec
 
     def __iter__(self):
         """Iterates through an archive's entries.
         """
         archive_p = self._pointer
+        header_codec = self.header_codec
         read_next_header2 = ffi.read_next_header2
         while 1:
-            entry = ArchiveEntry(archive_p)
+            entry = ArchiveEntry(archive_p, header_codec)
             r = read_next_header2(archive_p, entry._entry_p)
             if r == ARCHIVE_EOF:
                 return
@@ -68,6 +70,7 @@ def custom_reader(
     read_func, format_name='all', filter_name='all',
     open_func=None, seek_func=None, close_func=None,
     block_size=page_size, archive_read_class=ArchiveRead, passphrase=None,
+    header_codec='utf-8',
 ):
     """Read an archive using a custom function.
     """
@@ -79,12 +82,13 @@ def custom_reader(
         if seek_func:
             ffi.read_set_seek_callback(archive_p, seek_cb)
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
-        yield archive_read_class(archive_p)
+        yield archive_read_class(archive_p, header_codec)
 
 
 @contextmanager
 def fd_reader(
     fd, format_name='all', filter_name='all', block_size=4096, passphrase=None,
+    header_codec='utf-8',
 ):
     """Read an archive from a file descriptor.
     """
@@ -94,12 +98,13 @@ def fd_reader(
         except (OSError, AttributeError):  # pragma: no cover
             pass
         ffi.read_open_fd(archive_p, fd, block_size)
-        yield ArchiveRead(archive_p)
+        yield ArchiveRead(archive_p, header_codec)
 
 
 @contextmanager
 def file_reader(
     path, format_name='all', filter_name='all', block_size=4096, passphrase=None,
+    header_codec='utf-8',
 ):
     """Read an archive from a file.
     """
@@ -109,22 +114,25 @@ def file_reader(
         except (OSError, AttributeError):  # pragma: no cover
             pass
         ffi.read_open_filename_w(archive_p, path, block_size)
-        yield ArchiveRead(archive_p)
+        yield ArchiveRead(archive_p, header_codec)
 
 
 @contextmanager
-def memory_reader(buf, format_name='all', filter_name='all', passphrase=None):
+def memory_reader(
+    buf, format_name='all', filter_name='all', passphrase=None,
+    header_codec='utf-8',
+):
     """Read an archive from memory.
     """
     with new_archive_read(format_name, filter_name, passphrase) as archive_p:
         ffi.read_open_memory(archive_p, cast(buf, c_void_p), len(buf))
-        yield ArchiveRead(archive_p)
+        yield ArchiveRead(archive_p, header_codec)
 
 
 @contextmanager
 def stream_reader(
     stream, format_name='all', filter_name='all', block_size=page_size,
-    passphrase=None,
+    passphrase=None, header_codec='utf-8',
 ):
     """Read an archive from a stream.
 
@@ -158,7 +166,7 @@ def stream_reader(
         if stream.seekable():
             ffi.read_set_seek_callback(archive_p, seek_cb)
         ffi.read_open(archive_p, None, open_cb, read_cb, close_cb)
-        yield ArchiveRead(archive_p)
+        yield ArchiveRead(archive_p, header_codec)
 
 
 seekable_stream_reader = stream_reader

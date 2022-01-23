@@ -30,8 +30,9 @@ def new_archive_read_disk(path, flags=0, lookup=False):
 
 class ArchiveWrite:
 
-    def __init__(self, archive_p):
+    def __init__(self, archive_p, header_codec='utf-8'):
         self._pointer = archive_p
+        self.header_codec = header_codec
 
     def add_entries(self, entries):
         """Add the given entries to the archive.
@@ -74,7 +75,7 @@ class ArchiveWrite:
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
 
-        entry = ArchiveEntry()
+        entry = ArchiveEntry(header_codec=self.header_codec)
         entry_p = entry._entry_p
         destination_path = attributes.pop('pathname', None)
         for path in paths:
@@ -122,7 +123,7 @@ class ArchiveWrite:
         """"Add file from memory to archive.
 
         Args:
-            entry_path (str): the file's path
+            entry_path (str | bytes): the file's path
             entry_size (int): the file's size, in bytes
             entry_data (bytes | Iterable[bytes]): the file's content
             filetype (int): see `libarchive.entry.ArchiveEntry.modify()`
@@ -140,7 +141,8 @@ class ArchiveWrite:
 
         entry = ArchiveEntry(
             pathname=entry_path, size=entry_size, filetype=filetype,
-            perm=permission, **other_attributes
+            perm=permission, header_codec=self.header_codec,
+            **other_attributes
         )
         write_header(archive_pointer, entry._entry_p)
 
@@ -200,6 +202,7 @@ def custom_writer(
     write_func, format_name, filter_name=None,
     open_func=None, close_func=None, block_size=page_size,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
+    header_codec='utf-8',
 ):
     """Create an archive and send it in chunks to the `write_func` function.
 
@@ -220,13 +223,14 @@ def custom_writer(
         ffi.write_set_bytes_in_last_block(archive_p, 1)
         ffi.write_set_bytes_per_block(archive_p, block_size)
         ffi.write_open(archive_p, None, open_cb, write_cb, close_cb)
-        yield archive_write_class(archive_p)
+        yield archive_write_class(archive_p, header_codec)
 
 
 @contextmanager
 def fd_writer(
     fd, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
+    header_codec='utf-8',
 ):
     """Create an archive and write it into a file descriptor.
 
@@ -236,13 +240,14 @@ def fd_writer(
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_fd(archive_p, fd)
-        yield archive_write_class(archive_p)
+        yield archive_write_class(archive_p, header_codec)
 
 
 @contextmanager
 def file_writer(
     filepath, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
+    header_codec='utf-8',
 ):
     """Create an archive and write it into a file.
 
@@ -252,13 +257,14 @@ def file_writer(
     with new_archive_write(format_name, filter_name, options,
                            passphrase) as archive_p:
         ffi.write_open_filename_w(archive_p, filepath)
-        yield archive_write_class(archive_p)
+        yield archive_write_class(archive_p, header_codec)
 
 
 @contextmanager
 def memory_writer(
     buf, format_name, filter_name=None,
     archive_write_class=ArchiveWrite, options='', passphrase=None,
+    header_codec='utf-8',
 ):
     """Create an archive and write it into a buffer.
 
@@ -270,4 +276,4 @@ def memory_writer(
         used = byref(c_size_t())
         buf_p = cast(buf, c_void_p)
         ffi.write_open_memory(archive_p, buf_p, len(buf), used)
-        yield archive_write_class(archive_p)
+        yield archive_write_class(archive_p, header_codec)

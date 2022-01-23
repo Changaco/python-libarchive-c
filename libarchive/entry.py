@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from ctypes import c_char_p, create_string_buffer
+from ctypes import create_string_buffer
 from enum import IntEnum
 import math
 
@@ -34,15 +34,19 @@ def format_time(seconds, nanos):
 
 class ArchiveEntry:
 
-    __slots__ = ('_archive_p', '_entry_p')
+    __slots__ = ('_archive_p', '_entry_p', 'header_codec')
 
-    def __init__(self, archive_p=None, **attributes):
+    def __init__(self, archive_p=None, header_codec='utf-8', **attributes):
         """Allocate memory for an `archive_entry` struct.
 
-        The attributes are passed to the `modify` method.
+        The `header_codec` is used to decode and encode file paths and other
+        attributes.
+
+        The `**attributes` are passed to the `modify` method.
         """
         self._archive_p = archive_p
         self._entry_p = ffi.entry_new()
+        self.header_codec = header_codec
         if attributes:
             self.modify(**attributes)
 
@@ -54,7 +58,7 @@ class ArchiveEntry:
         """Returns the file's path"""
         return self.pathname
 
-    def modify(self, **attributes):
+    def modify(self, header_codec=None, **attributes):
         """Convenience method to modify the entry's attributes.
 
         Args:
@@ -83,6 +87,8 @@ class ArchiveEntry:
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
         """
+        if header_codec:
+            self.header_codec = header_codec
         for name, value in attributes.items():
             setattr(self, name, value)
 
@@ -112,23 +118,45 @@ class ArchiveEntry:
 
     @property
     def uname(self):
-        return ffi.entry_uname_w(self._entry_p)
+        uname = ffi.entry_uname_w(self._entry_p)
+        if not uname:
+            uname = ffi.entry_uname(self._entry_p)
+            if uname is not None:
+                try:
+                    uname = uname.decode(self.header_codec)
+                except UnicodeError:
+                    pass
+        return uname
 
     @uname.setter
     def uname(self, value):
         if not isinstance(value, bytes):
-            value = value.encode('utf8')
-        ffi.entry_update_uname_utf8(self._entry_p, value)
+            value = value.encode(self.header_codec)
+        if self.header_codec == 'utf-8':
+            ffi.entry_update_uname_utf8(self._entry_p, value)
+        else:
+            ffi.entry_copy_uname(self._entry_p, value)
 
     @property
     def gname(self):
-        return ffi.entry_gname_w(self._entry_p)
+        gname = ffi.entry_gname_w(self._entry_p)
+        if not gname:
+            gname = ffi.entry_gname(self._entry_p)
+            if gname is not None:
+                try:
+                    gname = gname.decode(self.header_codec)
+                except UnicodeError:
+                    pass
+        return gname
 
     @gname.setter
     def gname(self, value):
         if not isinstance(value, bytes):
-            value = value.encode('utf8')
-        ffi.entry_update_gname_utf8(self._entry_p, value)
+            value = value.encode(self.header_codec)
+        if self.header_codec == 'utf-8':
+            ffi.entry_update_gname_utf8(self._entry_p, value)
+        else:
+            ffi.entry_copy_gname(self._entry_p, value)
 
     def get_blocks(self, block_size=ffi.page_size):
         """Read the file's content, keeping only one chunk in memory at a time.
@@ -294,28 +322,48 @@ class ArchiveEntry:
         path = ffi.entry_pathname_w(self._entry_p)
         if not path:
             path = ffi.entry_pathname(self._entry_p)
-            try:
-                path = path.decode()
-            except UnicodeError:
-                pass
+            if path is not None:
+                try:
+                    path = path.decode(self.header_codec)
+                except UnicodeError:
+                    pass
         return path
 
     @pathname.setter
     def pathname(self, value):
         if not isinstance(value, bytes):
-            value = value.encode('utf8')
-        ffi.entry_update_pathname_utf8(self._entry_p, c_char_p(value))
+            value = value.encode(self.header_codec)
+        if self.header_codec == 'utf-8':
+            ffi.entry_update_pathname_utf8(self._entry_p, value)
+        else:
+            ffi.entry_copy_pathname(self._entry_p, value)
 
     @property
     def linkpath(self):
-        return (ffi.entry_symlink_w(self._entry_p) or
+        path = (
+            (
+                ffi.entry_symlink_w(self._entry_p) or
+                ffi.entry_symlink(self._entry_p)
+            ) if self.issym else (
                 ffi.entry_hardlink_w(self._entry_p) or
-                ffi.entry_symlink(self._entry_p) or
-                ffi.entry_hardlink(self._entry_p))
+                ffi.entry_hardlink(self._entry_p)
+            )
+        )
+        if isinstance(path, bytes):
+            try:
+                path = path.decode(self.header_codec)
+            except UnicodeError:
+                pass
+        return path
 
     @linkpath.setter
     def linkpath(self, value):
-        ffi.entry_update_link_utf8(self._entry_p, value)
+        if not isinstance(value, bytes):
+            value = value.encode(self.header_codec)
+        if self.header_codec == 'utf-8':
+            ffi.entry_update_link_utf8(self._entry_p, value)
+        else:
+            ffi.entry_copy_link(self._entry_p, value)
 
     # aliases for compatibility with the standard `tarfile` module
     path = property(pathname.fget, pathname.fset, doc="alias of pathname")
