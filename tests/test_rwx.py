@@ -7,7 +7,7 @@ import libarchive
 from libarchive.entry import format_time
 from libarchive.extract import EXTRACT_OWNER, EXTRACT_PERM, EXTRACT_TIME
 from libarchive.write import memory_writer
-from mock import patch
+from unittest.mock import patch
 import pytest
 
 from . import check_archive, in_dir, treestat
