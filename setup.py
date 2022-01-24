@@ -16,7 +16,7 @@ setup(
     url='https://github.com/Changaco/python-libarchive-c',
     license='CC0',
     packages=find_packages(exclude=['tests']),
-    long_description=open(join(dirname(__file__), 'README.rst')).read(encoding="utf-8"),
+    long_description=open(join(dirname(__file__), 'README.rst'), encoding="utf-8").read(),
     long_description_content_type='text/x-rst',
     keywords='archive libarchive 7z tar bz2 zip gz',
 )
