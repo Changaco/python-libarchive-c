@@ -112,7 +112,10 @@ class ArchiveWrite:
                         break
 
     def add_file(self, path, **kw):
-        "Single-path alias of `add_files()`"
+        """
+        Single-path alias of `add_files()` without recursive process
+        """
+        kw['recursive'] = False
         return self.add_files(path, **kw)
 
     def add_file_from_memory(
