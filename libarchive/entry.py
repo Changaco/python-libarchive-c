@@ -211,7 +211,7 @@ class ArchiveEntry:
             seconds, fraction = math.modf(value)
             self.set_atime(int(seconds), int(fraction * 1_000_000_000))
 
-    def set_atime(self, timestamp_sec, timestamp_nsec):
+    def set_atime(self, timestamp_sec, timestamp_nsec=0):
         "Kept for backward compatibility. `entry.atime = ...` is supported now."
         return ffi.entry_set_atime(self._entry_p, timestamp_sec, timestamp_nsec)
 
@@ -235,7 +235,7 @@ class ArchiveEntry:
             seconds, fraction = math.modf(value)
             self.set_mtime(int(seconds), int(fraction * 1_000_000_000))
 
-    def set_mtime(self, timestamp_sec, timestamp_nsec):
+    def set_mtime(self, timestamp_sec, timestamp_nsec=0):
         "Kept for backward compatibility. `entry.mtime = ...` is supported now."
         return ffi.entry_set_mtime(self._entry_p, timestamp_sec, timestamp_nsec)
 
@@ -259,7 +259,7 @@ class ArchiveEntry:
             seconds, fraction = math.modf(value)
             self.set_ctime(int(seconds), int(fraction * 1_000_000_000))
 
-    def set_ctime(self, timestamp_sec, timestamp_nsec):
+    def set_ctime(self, timestamp_sec, timestamp_nsec=0):
         "Kept for backward compatibility. `entry.ctime = ...` is supported now."
         return ffi.entry_set_ctime(self._entry_p, timestamp_sec, timestamp_nsec)
 
