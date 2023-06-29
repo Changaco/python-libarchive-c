@@ -44,7 +44,8 @@ class ArchiveWrite:
             write_finish_entry(write_p)
 
     def add_files(
-        self, *paths, flags=0, lookup=False, pathname=None, **attributes
+        self, *paths, flags=0, lookup=False, pathname=None, recursive=True,
+        **attributes
     ):
         """Read files through the OS and add them to the archive.
 
@@ -58,6 +59,9 @@ class ArchiveWrite:
                 is called to enable the lookup of user and group names
             pathname (str | None):
                 the path of the file in the archive, defaults to the source path
+            recursive (bool):
+                when False, if a path in `paths` is a directory,
+                only the directory itself is added.
             attributes (dict): passed to `ArchiveEntry.modify()`
 
         Raises:
@@ -103,6 +107,8 @@ class ArchiveWrite:
                                 write_data(write_p, data, len(data))
                     write_finish_entry(write_p)
                     entry_clear(entry_p)
+                    if not recursive:
+                        break
 
     def add_file(self, path, **kw):
         "Single-path alias of `add_files()`"
