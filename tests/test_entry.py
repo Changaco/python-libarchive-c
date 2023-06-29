@@ -106,7 +106,7 @@ def check_entries(test_file, regen=False, ignore=''):
 
 
 def test_the_life_cycle_of_archive_entries():
-    """Check that the `get_blocks` method only works on the current entry, and only once.
+    """Check that `get_blocks` only works on the current entry, and only once.
     """
     # Create a test archive in memory
     buf = bytes(bytearray(10_000_000))
