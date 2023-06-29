@@ -44,8 +44,7 @@ class ArchiveWrite:
             write_finish_entry(write_p)
 
     def add_files(
-        self, *paths, flags=0, lookup=False,
-        pathname=None, recursive=True,
+        self, *paths, flags=0, lookup=False, pathname=None, recursive=True,
         **attributes
     ):
         """Read files through the OS and add them to the archive.
