@@ -114,6 +114,21 @@ and the optional third argument is the compression format (called “filter” i
 libarchive). The acceptable values are listed in ``libarchive.ffi.WRITE_FORMATS``
 and ``libarchive.ffi.WRITE_FILTERS``.
 
+File metadata codecs
+--------------------
+
+By default, UTF-8 is used to read and write file attributes from and to archives.
+A different codec can be specified through the ``header_codec`` arguments of the
+``*_reader`` and ``*_writer`` functions. Example::
+
+    with libarchive.file_writer('test.tar', 'ustar', header_codec='cp037') as archive:
+        ...
+    with file_reader('test.tar', header_codec='cp037') as archive:
+        ...
+
+In addition to file paths (``pathname`` and ``linkpath``), the specified codec is
+used to encode and decode user and group names (``uname`` and ``gname``).
+
 License
 =======
 

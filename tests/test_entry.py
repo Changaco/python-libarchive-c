@@ -135,3 +135,17 @@ def test_the_life_cycle_of_archive_entries():
         assert type(entry3) is ArchiveEntry
         assert type(entry2) is PassedArchiveEntry
         assert type(entry1) is PassedArchiveEntry
+
+
+def test_non_ASCII_encoding_of_file_metadata():
+    buf = bytes(bytearray(100_000))
+    file_name = 'README.rst'
+    encoded_file_name = 'README.rst'.encode('cp037')
+    with memory_writer(buf, 'ustar', header_codec='cp037') as archive:
+        archive.add_file(file_name)
+    with memory_reader(buf) as archive:
+        entry = next(iter(archive))
+        assert entry.pathname == encoded_file_name
+    with memory_reader(buf, header_codec='cp037') as archive:
+        entry = next(iter(archive))
+        assert entry.pathname == file_name
