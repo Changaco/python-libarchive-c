@@ -433,10 +433,6 @@ class ArchiveEntry:
     def rdevminor(self, value):
         ffi.entry_set_rdevminor(self._entry_p, value)
 
-    @property
-    def format_name(self):
-        return ffi.format_name(self._archive_p)
-
 
 class ConsumedArchiveEntry(ArchiveEntry):
 
