@@ -26,6 +26,8 @@ def test_buffers(tmpdir):
     # Read the archive and check that the data is correct
     with libarchive.memory_reader(buf) as archive:
         check_archive(archive, tree)
+        assert archive.format_name == b'GNU tar format'
+        assert archive.filter_names == [b'xz']
 
     # Extract the archive in tmpdir and check that the data is intact
     with in_dir(tmpdir.strpath):
@@ -50,6 +52,8 @@ def test_fd(tmpdir):
     archive_file.seek(0)
     with libarchive.fd_reader(fd) as archive:
         check_archive(archive, tree)
+        assert archive.format_name == b'GNU tar format'
+        assert archive.filter_names == [b'bzip2']
 
     # Extract the archive in tmpdir and check that the data is intact
     archive_file.seek(0)
@@ -73,6 +77,8 @@ def test_files(tmpdir):
     # Read the archive and check that the data is correct
     with libarchive.file_reader(archive_path) as archive:
         check_archive(archive, tree)
+        assert archive.format_name == b'POSIX ustar format'
+        assert archive.filter_names == [b'gzip']
 
     # Extract the archive in tmpdir and check that the data is intact
     with in_dir(tmpdir.strpath):
@@ -95,6 +101,8 @@ def test_custom_writer_and_stream_reader():
     # Read the archive and check that the data is correct
     with libarchive.stream_reader(stream, 'zip') as archive:
         check_archive(archive, tree)
+        assert archive.format_name == b'ZIP 2.0 (deflation)'
+        assert archive.filter_names == []
 
 
 @patch('libarchive.ffi.write_fail')
