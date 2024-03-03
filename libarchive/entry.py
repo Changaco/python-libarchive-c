@@ -435,7 +435,7 @@ class ArchiveEntry:
 
     @property
     def format_name(self):
-        return ffi.format_name(self._pointer)
+        return ffi.format_name(self._archive_p)
 
 
 class ConsumedArchiveEntry(ArchiveEntry):
