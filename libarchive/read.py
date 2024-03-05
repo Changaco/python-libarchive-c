@@ -39,6 +39,10 @@ class ArchiveRead:
         count = ffi.filter_count(self._pointer)
         return [ffi.filter_name(self._pointer, i) for i in range(count - 1)]
 
+    @property
+    def format_name(self):
+        return ffi.format_name(self._pointer)
+
 
 @contextmanager
 def new_archive_read(format_name='all', filter_name='all', passphrase=None):
