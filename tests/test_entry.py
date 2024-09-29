@@ -9,7 +9,7 @@ import unicodedata
 
 import pytest
 
-from libarchive import memory_reader, memory_writer
+from libarchive import ArchiveError, memory_reader, memory_writer
 from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEntry
 
 from . import data_dir, get_entries, get_tarinfos
@@ -64,7 +64,13 @@ def test_check_ArchiveEntry_against_TarInfo():
 
 
 def test_check_archiveentry_using_python_testtar():
-    check_entries(join(data_dir, 'testtar.tar'))
+    # This test behaves differently depending on the libarchive version:
+    # 3.5, 3.6 and presumably all future versions reject the archive as damaged,
+    # whereas older versions accepted it.
+    try:
+        check_entries(join(data_dir, 'testtar.tar'))
+    except ArchiveError as e:
+        assert e.msg == "Damaged tar archive"
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_tar():
