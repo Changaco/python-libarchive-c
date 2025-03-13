@@ -77,7 +77,6 @@ class ArchiveWrite:
 
         entry = ArchiveEntry(header_codec=self.header_codec)
         entry_p = entry._entry_p
-        destination_path = attributes.pop('pathname', None)
         for path in paths:
             with new_archive_read_disk(path, flags, lookup) as read_p:
                 while 1:
@@ -85,13 +84,13 @@ class ArchiveWrite:
                     if r == ARCHIVE_EOF:
                         break
                     entry_path = entry.pathname
-                    if destination_path:
+                    if pathname:
                         if entry_path == path:
-                            entry_path = destination_path
+                            entry_path = pathname
                         else:
                             assert entry_path.startswith(path)
                             entry_path = join(
-                                destination_path,
+                                pathname,
                                 entry_path[len(path):].lstrip('/')
                             )
                     entry.pathname = entry_path.lstrip('/')
