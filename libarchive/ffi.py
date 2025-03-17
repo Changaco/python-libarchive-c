@@ -1,17 +1,5 @@
-from ctypes import (
-    c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_int64,
-    c_ubyte, c_void_p, c_wchar_p, CFUNCTYPE, POINTER,
-)
-
-c_ubyte_p = POINTER(c_ubyte)
-
-try:
-    from ctypes import c_ssize_t
-except ImportError:
-    from ctypes import c_longlong as c_ssize_t
-
-import ctypes
 from ctypes.util import find_library
+import ctypes
 import logging
 import mmap
 import os
@@ -19,6 +7,21 @@ import sysconfig
 
 from .exception import ArchiveError
 
+c_char_p = ctypes.c_char_p
+c_int = ctypes.c_int
+c_uint = ctypes.c_uint
+c_long = ctypes.c_long
+c_longlong = ctypes.c_longlong
+c_size_t = ctypes.c_size_t
+c_int64, = ctypes.c_int64,
+c_ubyte = ctypes.c_ubyte
+c_void_p = ctypes.c_void_p
+c_wchar_p = ctypes.c_wchar_p
+CFUNCTYPE = ctypes.CFUNCTYPE
+POINTER = ctypes.POINTER
+
+c_ubyte_p = POINTER(c_ubyte)
+c_ssize_t = getattr(ctypes, 'c_ssize_t', c_longlong)
 
 logger = logging.getLogger('libarchive')
 
