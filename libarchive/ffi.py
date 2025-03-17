@@ -1,6 +1,6 @@
 from ctypes import (
     c_char_p, c_int, c_uint, c_long, c_longlong, c_size_t, c_int64,
-    c_void_p, c_wchar_p, CFUNCTYPE, POINTER,
+    c_ubyte, c_void_p, c_wchar_p, CFUNCTYPE, POINTER,
 )
 
 try:
@@ -364,4 +364,40 @@ except AttributeError:
     logger.info(
         f"the libarchive being used (version {version_number()}, "
         f"path {libarchive_path}) doesn't support encryption"
+    )
+
+# archive digest API
+try:
+    ffi('entry_digest', [c_archive_entry_p, c_int], POINTER(c_ubyte))
+
+    ARCHIVE_ENTRY_DIGEST_MD5 = 1
+    ARCHIVE_ENTRY_DIGEST_RMD160 = 2
+    ARCHIVE_ENTRY_DIGEST_SHA1 = 3
+    ARCHIVE_ENTRY_DIGEST_SHA256 = 4
+    ARCHIVE_ENTRY_DIGEST_SHA384 = 5
+    ARCHIVE_ENTRY_DIGEST_SHA512 = 6
+
+    _DIGEST_LENGTHS = [
+        16,  # MD5
+        20,  # RMD160
+        20,  # SHA1
+        32,  # SHA256
+        48,  # SHA384
+        64,  # SHA512
+    ]
+
+except AttributeError:
+    logger.info(
+        f"the libarchive being used (version {version_number()}, "
+        f"path {libarchive_path}) doesn't support read-only message digest API"
+    )
+
+try:
+    ffi('entry_set_digest',
+        [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_ubyte)],
+        ctypes.c_int)
+except AttributeError:
+    logger.info(
+        f"the libarchive being used (version {version_number()}, "
+        f"path {libarchive_path}) doesn't support mutable message digest API"
     )
