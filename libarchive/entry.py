@@ -86,6 +86,12 @@ class ArchiveEntry:
             rdev (int | Tuple[int, int]): device number, if the file is a device
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
+            md5Digest (bytes): MD5 digest
+            rmd160Digest (bytes): RMD160 digest
+            sha1Digest (bytes): SHA1 digest
+            sha256Digest (bytes): SHA256 digest
+            sha384Digest (bytes): SHA384 digest
+            sha512Digest (bytes): SHA512 digest
         """
         if header_codec:
             self.header_codec = header_codec
@@ -432,6 +438,81 @@ class ArchiveEntry:
     @rdevminor.setter
     def rdevminor(self, value):
         ffi.entry_set_rdevminor(self._entry_p, value)
+
+    @property
+    def md5Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5)
+
+    @md5Digest.setter
+    def md5Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5, value)
+
+    @property
+    def rmd160Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160)
+
+    @rmd160Digest.setter
+    def rmd160Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160, value)
+
+    @property
+    def sha1Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1)
+
+    @sha1Digest.setter
+    def sha1Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1, value)
+
+    @property
+    def sha256Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256)
+
+    @sha256Digest.setter
+    def sha256Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256, value)
+
+    @property
+    def sha384Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384)
+
+    @sha384Digest.setter
+    def sha384Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384, value)
+
+    @property
+    def sha512Digest(self):
+        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512)
+
+    @sha512Digest.setter
+    def sha512Digest(self, value):
+        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512, value)
+
+    def _digest(self, digestType):
+        try:
+            ptr = ffi.entry_digest(self._entry_p, digestType)
+            if ptr:
+                return bytes(ptr[:ffi._DIGEST_LENGTHS[digestType - 1]])
+        except AttributeError:
+            raise NotImplementedError(f"the libarchive being used (version "
+                                      f"{ffi.version_number()} path "
+                                      f"{ffi.libarchive_path}) doesn't "
+                                      f"support read-only digest APIs")
+        return None
+
+    def _set_digest(self, digestType, value):
+        try:
+            digestLen = ffi._DIGEST_LENGTHS[digestType - 1]
+            if len(value) != digestLen:
+                raise ValueError(f"Invalid input digest Expected {digestLen} "
+                                 f"bytes. Got {len(value)}.")
+            buffer = (digestLen * ffi.c_ubyte)(*value)
+            ffi.entry_set_digest(self._entry_p, digestType, buffer)
+        except AttributeError:
+            raise NotImplementedError(f"the libarchive being used (version "
+                                      f"{ffi.version_number()} path "
+                                      f"{ffi.libarchive_path}) doesn't support "
+                                      f"writable digest APIs")
+        return None
 
 
 class ConsumedArchiveEntry(ArchiveEntry):
