@@ -35,6 +35,9 @@ ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
 
+ARCHIVE_SYMLINK_MODE_HYBRID = 'H'
+ARCHIVE_SYMLINK_MODE_LOGICAL = 'L'
+ARCHIVE_SYMLINK_MODE_PHYSICAL = 'P'
 
 # Callback types
 
@@ -286,6 +289,9 @@ ffi('read_disk_set_standard_lookup', [c_archive_p], c_int, check_int)
 ffi('read_disk_open', [c_archive_p, c_char_p], c_int, check_int)
 ffi('read_disk_open_w', [c_archive_p, c_wchar_p], c_int, check_int)
 ffi('read_disk_descend', [c_archive_p], c_int, check_int)
+ffi('read_disk_set_symlink_hybrid', [c_archive_p], c_int)
+ffi('read_disk_set_symlink_logical', [c_archive_p], c_int)
+ffi('read_disk_set_symlink_physical', [c_archive_p], c_int)
 
 # archive_read_data
 

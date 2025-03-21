@@ -46,7 +46,7 @@ class ArchiveWrite:
 
     def add_files(
         self, *paths, flags=0, lookup=False, pathname=None, recursive=True,
-        **attributes
+        symlink_mode=ffi.ARCHIVE_SYMLINK_MODE_PHYSICAL, **attributes
     ):
         """Read files through the OS and add them to the archive.
 
@@ -63,6 +63,11 @@ class ArchiveWrite:
             recursive (bool):
                 when False, if a path in `paths` is a directory,
                 only the directory itself is added.
+            symlink_mode (enum):
+                Determines how symlinks are traversed. Valid options are
+                ARCHIVE_SYMLINK_MODE_HYBRID, ARCHIVE_SYMLINK_MODE_LOGICAL, and
+                ARCHIVE_SYMLINK_MODE_PHYSICAL as defined in the ffi module.
+                Default value matches default from libarchive.
             attributes (dict): passed to `ArchiveEntry.modify()`
 
         Raises:
@@ -79,6 +84,14 @@ class ArchiveWrite:
         entry_p = entry._entry_p
         for path in paths:
             with new_archive_read_disk(path, flags, lookup) as read_p:
+                if (symlink_mode == ffi.ARCHIVE_SYMLINK_MODE_PHYSICAL):
+                    ffi.read_disk_set_symlink_physical(read_p)
+                elif (symlink_mode == ffi.ARCHIVE_SYMLINK_MODE_LOGICAL):
+                    ffi.read_disk_set_symlink_logical(read_p)
+                elif (symlink_mode == ffi.ARCHIVE_SYMLINK_MODE_HYBRID):
+                    ffi.read_disk_set_symlink_hybrid(read_p)
+                else:
+                    raise ValueError(f"Bad symlink mode value {symlink_mode}")
                 while 1:
                     r = read_next_header2(read_p, entry_p)
                     if r == ARCHIVE_EOF:
