@@ -9,7 +9,9 @@ import unicodedata
 
 import pytest
 
-from libarchive import ArchiveError, memory_reader, memory_writer
+from libarchive import (
+    ArchiveError, ffi, file_reader, file_writer, memory_reader, memory_writer,
+)
 from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEntry
 
 from . import data_dir, get_entries, get_tarinfos
@@ -155,3 +157,26 @@ def test_non_ASCII_encoding_of_file_metadata():
     with memory_reader(buf, header_codec='cp037') as archive:
         entry = next(iter(archive))
         assert entry.pathname == file_name
+
+
+@pytest.mark.xfail(
+    condition=ffi.version_number() < 3008000,
+    reason="libarchive < 3.8",
+)
+def test_writing_and_reading_entry_digests(tmpdir):
+    fake_hashes = dict(
+        md5=b'0000000000000000',
+        rmd160=b'00000000000000000000',
+        sha1=b'00000000000000000000',
+        sha256=b'00000000000000000000000000000000',
+        sha384=b'000000000000000000000000000000000000000000000000',
+        sha512=b'0000000000000000000000000000000000000000000000000000000000000000',
+    )
+    archive_path = str(tmpdir / 'mtree')
+    with file_writer(archive_path, 'mtree') as archive:
+        # Add an empty file, with fake hashes.
+        archive.add_file_from_memory('empty.txt', 0, b'', **fake_hashes)
+    with file_reader(archive_path) as archive:
+        entry = next(iter(archive))
+        for key, value in fake_hashes.items():
+            assert getattr(entry, key) == value
