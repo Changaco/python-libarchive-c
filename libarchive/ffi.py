@@ -366,38 +366,41 @@ except AttributeError:
         f"path {libarchive_path}) doesn't support encryption"
     )
 
-# archive digest API
+
+# archive entry digests (a.k.a. hashes)
+
+class DigestAlgorithm:
+    __slots__ = ('name', 'libarchive_id', 'bytes_length')
+
+    def __init__(self, name, libarchive_id, bytes_length):
+        self.name = name
+        self.libarchive_id = libarchive_id
+        self.bytes_length = bytes_length
+
+
+DIGEST_ALGORITHMS = {
+    'md5': DigestAlgorithm('md5', libarchive_id=1, bytes_length=16),
+    'rmd160': DigestAlgorithm('rmd160', libarchive_id=2, bytes_length=20),
+    'sha1': DigestAlgorithm('sha1', libarchive_id=3, bytes_length=20),
+    'sha256': DigestAlgorithm('sha256', libarchive_id=4, bytes_length=32),
+    'sha384': DigestAlgorithm('sha384', libarchive_id=5, bytes_length=48),
+    'sha512': DigestAlgorithm('sha512', libarchive_id=6, bytes_length=64),
+}
+
 try:
-    ffi('entry_digest', [c_archive_entry_p, c_int], POINTER(c_ubyte))
-
-    ARCHIVE_ENTRY_DIGEST_MD5 = 1
-    ARCHIVE_ENTRY_DIGEST_RMD160 = 2
-    ARCHIVE_ENTRY_DIGEST_SHA1 = 3
-    ARCHIVE_ENTRY_DIGEST_SHA256 = 4
-    ARCHIVE_ENTRY_DIGEST_SHA384 = 5
-    ARCHIVE_ENTRY_DIGEST_SHA512 = 6
-
-    _DIGEST_LENGTHS = [
-        16,  # MD5
-        20,  # RMD160
-        20,  # SHA1
-        32,  # SHA256
-        48,  # SHA384
-        64,  # SHA512
-    ]
-
+    ffi('entry_digest', [c_archive_entry_p, c_int], POINTER(c_ubyte), check_null)
 except AttributeError:
     logger.info(
         f"the libarchive being used (version {version_number()}, "
-        f"path {libarchive_path}) doesn't support read-only message digest API"
+        f"path {libarchive_path}) doesn't support reading entry digests"
     )
 
 try:
     ffi('entry_set_digest',
-        [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_ubyte)],
-        ctypes.c_int)
+        [c_archive_entry_p, c_int, POINTER(c_ubyte)],
+        c_int, check_int)
 except AttributeError:
     logger.info(
         f"the libarchive being used (version {version_number()}, "
-        f"path {libarchive_path}) doesn't support mutable message digest API"
+        f"path {libarchive_path}) doesn't support modifying entry digests"
     )

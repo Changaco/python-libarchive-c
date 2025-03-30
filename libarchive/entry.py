@@ -4,6 +4,7 @@ from enum import IntEnum
 import math
 
 from . import ffi
+from .exception import ArchiveError
 
 
 class FileType(IntEnum):
@@ -86,12 +87,12 @@ class ArchiveEntry:
             rdev (int | Tuple[int, int]): device number, if the file is a device
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
-            md5digest (bytes): MD5 digest
-            rmd160digest (bytes): RMD160 digest
-            sha1digest (bytes): SHA1 digest
-            sha256digest (bytes): SHA256 digest
-            sha384digest (bytes): SHA384 digest
-            sha512digest (bytes): SHA512 digest
+            md5 (bytes): MD5 digest
+            rmd160 (bytes): RMD160 digest
+            sha1 (bytes): SHA1 digest
+            sha256 (bytes): SHA256 digest
+            sha384 (bytes): SHA384 digest
+            sha512 (bytes): SHA512 digest
         """
         if header_codec:
             self.header_codec = header_codec
@@ -440,79 +441,93 @@ class ArchiveEntry:
         ffi.entry_set_rdevminor(self._entry_p, value)
 
     @property
-    def md5digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5)
+    def md5(self):
+        return self.get_stored_digest('md5')
 
-    @md5digest.setter
-    def md5digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5, value)
-
-    @property
-    def rmd160digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160)
-
-    @rmd160digest.setter
-    def rmd160digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160, value)
+    @md5.setter
+    def md5(self, value):
+        self.set_stored_digest('md5', value)
 
     @property
-    def sha1digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1)
+    def rmd160(self):
+        return self.get_stored_digest('rmd160')
 
-    @sha1digest.setter
-    def sha1digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1, value)
-
-    @property
-    def sha256digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256)
-
-    @sha256digest.setter
-    def sha256digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256, value)
+    @rmd160.setter
+    def rmd160(self, value):
+        self.set_stored_digest('rmd160', value)
 
     @property
-    def sha384digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384)
+    def sha1(self):
+        return self.get_stored_digest('sha1')
 
-    @sha384digest.setter
-    def sha384digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384, value)
+    @sha1.setter
+    def sha1(self, value):
+        self.set_stored_digest('sha1', value)
 
     @property
-    def sha512digest(self):
-        return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512)
+    def sha256(self):
+        return self.get_stored_digest('sha256')
 
-    @sha512digest.setter
-    def sha512digest(self, value):
-        self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512, value)
+    @sha256.setter
+    def sha256(self, value):
+        self.set_stored_digest('sha256', value)
 
-    def _digest(self, digest_type):
+    @property
+    def sha384(self):
+        return self.get_stored_digest('sha384')
+
+    @sha384.setter
+    def sha384(self, value):
+        self.set_stored_digest('sha384', value)
+
+    @property
+    def sha512(self):
+        return self.get_stored_digest('sha512')
+
+    @sha512.setter
+    def sha512(self, value):
+        self.set_stored_digest('sha512', value)
+
+    def get_stored_digest(self, algorithm_name):
+        algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
         try:
-            ptr = ffi.entry_digest(self._entry_p, digest_type)
-            if ptr:
-                return bytes(ptr[:ffi._DIGEST_LENGTHS[digest_type - 1]])
+            ptr = ffi.entry_digest(self._entry_p, algorithm.libarchive_id)
         except AttributeError:
-            raise NotImplementedError(f"the libarchive being used (version "
-                                      f"{ffi.version_number()} path "
-                                      f"{ffi.libarchive_path}) doesn't "
-                                      f"support read-only digest APIs")
-        return None
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support reading entry digests"
+            ) from None
+        except ArchiveError:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
+            ) from None
+        return bytes(ptr[:algorithm.bytes_length])
 
-    def _set_digest(self, digest_type, value):
+    def set_stored_digest(self, algorithm_name, value):
+        algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
+        expected_length = algorithm.bytes_length
+        if len(value) != expected_length:
+            raise ValueError(
+                f"invalid input digest: expected {expected_length} bytes, "
+                f"got {len(value)}"
+            )
         try:
-            digest_length = ffi._DIGEST_LENGTHS[digest_type - 1]
-            if len(value) != digest_length:
-                raise ValueError(f"Invalid input digest Expected {digest_length} "
-                                 f"bytes. Got {len(value)}.")
-            buffer = (digest_length * ffi.c_ubyte)(*value)
-            ffi.entry_set_digest(self._entry_p, digest_type, buffer)
+            retcode = ffi.entry_set_digest(
+                self._entry_p,
+                algorithm.libarchive_id,
+                (expected_length * ffi.c_ubyte)(*value)
+            )
         except AttributeError:
-            raise NotImplementedError(f"the libarchive being used (version "
-                                      f"{ffi.version_number()} path "
-                                      f"{ffi.libarchive_path}) doesn't support "
-                                      f"writable digest APIs")
-        return None
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support writing entry digests"
+            ) from None
+        if retcode < 0:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
+            ) from None
 
 
 class ConsumedArchiveEntry(ArchiveEntry):
