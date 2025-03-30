@@ -86,12 +86,12 @@ class ArchiveEntry:
             rdev (int | Tuple[int, int]): device number, if the file is a device
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
-            md5Digest (bytes): MD5 digest
-            rmd160Digest (bytes): RMD160 digest
-            sha1Digest (bytes): SHA1 digest
-            sha256Digest (bytes): SHA256 digest
-            sha384Digest (bytes): SHA384 digest
-            sha512Digest (bytes): SHA512 digest
+            md5digest (bytes): MD5 digest
+            rmd160digest (bytes): RMD160 digest
+            sha1digest (bytes): SHA1 digest
+            sha256digest (bytes): SHA256 digest
+            sha384digest (bytes): SHA384 digest
+            sha512digest (bytes): SHA512 digest
         """
         if header_codec:
             self.header_codec = header_codec
@@ -440,58 +440,58 @@ class ArchiveEntry:
         ffi.entry_set_rdevminor(self._entry_p, value)
 
     @property
-    def md5Digest(self):
+    def md5digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5)
 
-    @md5Digest.setter
-    def md5Digest(self, value):
+    @md5digest.setter
+    def md5digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_MD5, value)
 
     @property
-    def rmd160Digest(self):
+    def rmd160digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160)
 
-    @rmd160Digest.setter
-    def rmd160Digest(self, value):
+    @rmd160digest.setter
+    def rmd160digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_RMD160, value)
 
     @property
-    def sha1Digest(self):
+    def sha1digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1)
 
-    @sha1Digest.setter
-    def sha1Digest(self, value):
+    @sha1digest.setter
+    def sha1digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA1, value)
 
     @property
-    def sha256Digest(self):
+    def sha256digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256)
 
-    @sha256Digest.setter
-    def sha256Digest(self, value):
+    @sha256digest.setter
+    def sha256digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA256, value)
 
     @property
-    def sha384Digest(self):
+    def sha384digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384)
 
-    @sha384Digest.setter
-    def sha384Digest(self, value):
+    @sha384digest.setter
+    def sha384digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA384, value)
 
     @property
-    def sha512Digest(self):
+    def sha512digest(self):
         return self._digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512)
 
-    @sha512Digest.setter
-    def sha512Digest(self, value):
+    @sha512digest.setter
+    def sha512digest(self, value):
         self._set_digest(ffi.ARCHIVE_ENTRY_DIGEST_SHA512, value)
 
-    def _digest(self, digestType):
+    def _digest(self, digest_type):
         try:
-            ptr = ffi.entry_digest(self._entry_p, digestType)
+            ptr = ffi.entry_digest(self._entry_p, digest_type)
             if ptr:
-                return bytes(ptr[:ffi._DIGEST_LENGTHS[digestType - 1]])
+                return bytes(ptr[:ffi._DIGEST_LENGTHS[digest_type - 1]])
         except AttributeError:
             raise NotImplementedError(f"the libarchive being used (version "
                                       f"{ffi.version_number()} path "
@@ -499,14 +499,14 @@ class ArchiveEntry:
                                       f"support read-only digest APIs")
         return None
 
-    def _set_digest(self, digestType, value):
+    def _set_digest(self, digest_type, value):
         try:
-            digestLen = ffi._DIGEST_LENGTHS[digestType - 1]
-            if len(value) != digestLen:
-                raise ValueError(f"Invalid input digest Expected {digestLen} "
+            digest_length = ffi._DIGEST_LENGTHS[digest_type - 1]
+            if len(value) != digest_length:
+                raise ValueError(f"Invalid input digest Expected {digest_length} "
                                  f"bytes. Got {len(value)}.")
-            buffer = (digestLen * ffi.c_ubyte)(*value)
-            ffi.entry_set_digest(self._entry_p, digestType, buffer)
+            buffer = (digest_length * ffi.c_ubyte)(*value)
+            ffi.entry_set_digest(self._entry_p, digest_type, buffer)
         except AttributeError:
             raise NotImplementedError(f"the libarchive being used (version "
                                       f"{ffi.version_number()} path "
