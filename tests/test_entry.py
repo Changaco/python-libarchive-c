@@ -175,8 +175,7 @@ def test_writing_and_reading_entry_digests(tmpdir):
     archive_path = str(tmpdir / 'mtree')
     with file_writer(archive_path, 'mtree') as archive:
         # Add an empty file, with fake hashes.
-        archive.add_file_from_memory('empty.txt', 0, b'', **fake_hashes)
+        archive.add_file_from_memory('empty.txt', 0, b'', stored_digests=fake_hashes)
     with file_reader(archive_path) as archive:
         entry = next(iter(archive))
-        for key, value in fake_hashes.items():
-            assert getattr(entry, key) == value
+        assert entry.stored_digests == fake_hashes

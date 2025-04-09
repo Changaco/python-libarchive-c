@@ -87,12 +87,7 @@ class ArchiveEntry:
             rdev (int | Tuple[int, int]): device number, if the file is a device
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
-            md5 (bytes): MD5 digest
-            rmd160 (bytes): RMD160 digest
-            sha1 (bytes): SHA1 digest
-            sha256 (bytes): SHA256 digest
-            sha384 (bytes): SHA384 digest
-            sha512 (bytes): SHA512 digest
+            stored_digests (dict[str, bytes]): hashes of the file's contents
         """
         if header_codec:
             self.header_codec = header_codec
@@ -441,52 +436,13 @@ class ArchiveEntry:
         ffi.entry_set_rdevminor(self._entry_p, value)
 
     @property
-    def md5(self):
-        return self.get_stored_digest('md5')
+    def stored_digests(self):
+        return {name: self.get_stored_digest(name) for name in ffi.DIGEST_ALGORITHMS}
 
-    @md5.setter
-    def md5(self, value):
-        self.set_stored_digest('md5', value)
-
-    @property
-    def rmd160(self):
-        return self.get_stored_digest('rmd160')
-
-    @rmd160.setter
-    def rmd160(self, value):
-        self.set_stored_digest('rmd160', value)
-
-    @property
-    def sha1(self):
-        return self.get_stored_digest('sha1')
-
-    @sha1.setter
-    def sha1(self, value):
-        self.set_stored_digest('sha1', value)
-
-    @property
-    def sha256(self):
-        return self.get_stored_digest('sha256')
-
-    @sha256.setter
-    def sha256(self, value):
-        self.set_stored_digest('sha256', value)
-
-    @property
-    def sha384(self):
-        return self.get_stored_digest('sha384')
-
-    @sha384.setter
-    def sha384(self, value):
-        self.set_stored_digest('sha384', value)
-
-    @property
-    def sha512(self):
-        return self.get_stored_digest('sha512')
-
-    @sha512.setter
-    def sha512(self, value):
-        self.set_stored_digest('sha512', value)
+    @stored_digests.setter
+    def stored_digests(self, values):
+        for name, value in values.items():
+            self.set_stored_digest(name, value)
 
     def get_stored_digest(self, algorithm_name):
         algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
