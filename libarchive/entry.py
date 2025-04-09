@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from ctypes import create_string_buffer
+from ctypes import create_string_buffer, string_at
 from enum import IntEnum
 import math
 
@@ -502,7 +502,7 @@ class ArchiveEntry:
                 f"the libarchive being used (version {ffi.version_number()}, path "
                 f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
             ) from None
-        return bytes(ptr[:algorithm.bytes_length])
+        return string_at(ptr, algorithm.bytes_length)
 
     def set_stored_digest(self, algorithm_name, value):
         algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
@@ -516,7 +516,7 @@ class ArchiveEntry:
             retcode = ffi.entry_set_digest(
                 self._entry_p,
                 algorithm.libarchive_id,
-                (expected_length * ffi.c_ubyte)(*value)
+                (expected_length * ffi.c_ubyte).from_buffer_copy(value)
             )
         except AttributeError:
             raise NotImplementedError(
