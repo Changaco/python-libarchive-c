@@ -9,9 +9,7 @@ import unicodedata
 
 import pytest
 
-from libarchive import (
-    ArchiveError, ffi, file_reader, file_writer, memory_reader, memory_writer,
-)
+from libarchive import ArchiveError, ffi, file_writer, memory_reader, memory_writer
 from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEntry
 
 from . import data_dir, get_entries, get_tarinfos
@@ -159,23 +157,37 @@ def test_non_ASCII_encoding_of_file_metadata():
         assert entry.pathname == file_name
 
 
+fake_hashes = dict(
+    md5=b'!' * 16,
+    rmd160=b'!' * 20,
+    sha1=b'!' * 20,
+    sha256=b'!' * 32,
+    sha384=b'!' * 48,
+    sha512=b'!' * 64,
+)
+mtree = (
+    '#mtree\n'
+    './empty.txt nlink=0 time=0.0 mode=664 gid=0 uid=0 type=file size=0 '
+    f'md5={'21'*16} rmd160={'21'*20} sha1={'21'*20} sha256={'21'*32} '
+    f'sha384={'21'*48} sha512={'21'*64}\n'
+)
+
+
+def test_reading_entry_digests(tmpdir):
+    with memory_reader(mtree.encode('ascii')) as archive:
+        entry = next(iter(archive))
+        assert entry.stored_digests == fake_hashes
+
+
 @pytest.mark.xfail(
     condition=ffi.version_number() < 3008000,
     reason="libarchive < 3.8",
 )
-def test_writing_and_reading_entry_digests(tmpdir):
-    fake_hashes = dict(
-        md5=b'0000000000000000',
-        rmd160=b'00000000000000000000',
-        sha1=b'00000000000000000000',
-        sha256=b'00000000000000000000000000000000',
-        sha384=b'000000000000000000000000000000000000000000000000',
-        sha512=b'0000000000000000000000000000000000000000000000000000000000000000',
-    )
+def test_writing_entry_digests(tmpdir):
     archive_path = str(tmpdir / 'mtree')
     with file_writer(archive_path, 'mtree') as archive:
         # Add an empty file, with fake hashes.
         archive.add_file_from_memory('empty.txt', 0, b'', stored_digests=fake_hashes)
-    with file_reader(archive_path) as archive:
-        entry = next(iter(archive))
-        assert entry.stored_digests == fake_hashes
+    with open(archive_path) as f:
+        libarchive_mtree = f.read()
+        assert libarchive_mtree == mtree
