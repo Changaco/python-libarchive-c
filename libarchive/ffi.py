@@ -35,9 +35,6 @@ ARCHIVE_WARN = -20    # Partial success.
 ARCHIVE_FAILED = -25  # Current operation cannot complete.
 ARCHIVE_FATAL = -30   # No more operations are possible.
 
-ARCHIVE_SYMLINK_MODE_HYBRID = 'H'
-ARCHIVE_SYMLINK_MODE_LOGICAL = 'L'
-ARCHIVE_SYMLINK_MODE_PHYSICAL = 'P'
 
 # Callback types
 
