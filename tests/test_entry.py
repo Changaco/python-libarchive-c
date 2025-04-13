@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from codecs import open
 import json
 import locale
 from os import environ, stat
@@ -14,8 +11,6 @@ from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEn
 
 from . import data_dir, get_entries, get_tarinfos
 
-
-text_type = unicode if str is bytes else str  # noqa: F821
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -106,7 +101,7 @@ def check_entries(test_file, regen=False, ignore=''):
         # Normalize all unicode (can vary depending on the system)
         for d in (e1, e2):
             for key in d:
-                if isinstance(d[key], text_type):
+                if isinstance(d[key], str):
                     d[key] = unicodedata.normalize('NFC', d[key])
         assert e1 == e2
 
