@@ -114,6 +114,14 @@ and the optional third argument is the compression format (called “filter” i
 libarchive). The acceptable values are listed in ``libarchive.ffi.WRITE_FORMATS``
 and ``libarchive.ffi.WRITE_FILTERS``.
 
+Symbolic links
+~~~~~~~~~~~~~~
+
+By default, libarchive preserves symbolic links. If you want it to resolve the
+links and archive the files they point to instead, pass ``symlink_mode='logical'``
+when calling the ``add_files`` method. If you do that, an ``ArchiveError``
+exception will be raised when a symbolic link points to a nonexistent file.
+
 File metadata codecs
 --------------------
 

@@ -46,7 +46,7 @@ class ArchiveWrite:
 
     def add_files(
         self, *paths, flags=0, lookup=False, pathname=None, recursive=True,
-        **attributes
+        symlink_mode=None, **attributes
     ):
         """Read files through the OS and add them to the archive.
 
@@ -63,6 +63,9 @@ class ArchiveWrite:
             recursive (bool):
                 when False, if a path in `paths` is a directory,
                 only the directory itself is added.
+            symlink_mode (Literal['hybrid', 'logical', 'physical'] | None):
+                how symbolic links should be handled; see `man archive_read_disk`
+                for meanings
             attributes (dict): passed to `ArchiveEntry.modify()`
 
         Raises:
@@ -75,10 +78,23 @@ class ArchiveWrite:
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
 
+        set_symlink_mode = None
+        if symlink_mode:
+            try:
+                set_symlink_mode = getattr(
+                    ffi, f'read_disk_set_symlink_{symlink_mode}'
+                )
+            except AttributeError:
+                raise ValueError(
+                    f"symlink_mode value {symlink_mode!r} is invalid"
+                ) from None
+
         entry = ArchiveEntry(header_codec=self.header_codec)
         entry_p = entry._entry_p
         for path in paths:
             with new_archive_read_disk(path, flags, lookup) as read_p:
+                if set_symlink_mode:
+                    set_symlink_mode(read_p)
                 while 1:
                     r = read_next_header2(read_p, entry_p)
                     if r == ARCHIVE_EOF:

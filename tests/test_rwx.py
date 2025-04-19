@@ -2,6 +2,7 @@
 
 import io
 import json
+import os
 
 import libarchive
 from libarchive.entry import format_time
@@ -181,3 +182,32 @@ def test_adding_entry_from_memory(archfmt, data_bytes):
                 )
             assert archive_entry.uid == 1000
             assert archive_entry.gid == 1000
+
+
+def test_symlinks(tmpdir):
+    os.chdir(tmpdir)
+    with open('empty', 'w'):
+        pass
+    with open('unreadable', 'w') as f:
+        f.write('secret')
+    os.chmod('unreadable', 0)
+
+    os.symlink('empty', 'symlink-to-empty')
+    os.symlink('unreadable', 'symlink-to-unreadable')
+
+    with libarchive.file_writer('archive.tar', 'gnutar') as archive:
+        archive.add_files('symlink-to-empty', symlink_mode='hybrid')
+        with pytest.raises(libarchive.ArchiveError):
+            archive.add_files('symlink-to-unreadable', symlink_mode='logical')
+        archive.add_files('symlink-to-unreadable', symlink_mode='physical')
+
+    with libarchive.file_reader('archive.tar') as archive:
+        entries = iter(archive)
+        e1 = next(entries)
+        assert e1.pathname == 'symlink-to-empty'
+        assert e1.isreg
+        assert e1.size == 0
+        e2 = next(entries)
+        assert e2.pathname == 'symlink-to-unreadable'
+        assert e2.issym
+        assert e2.linkpath == 'unreadable'
