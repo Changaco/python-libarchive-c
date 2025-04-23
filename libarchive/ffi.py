@@ -286,6 +286,9 @@ ffi('read_disk_set_standard_lookup', [c_archive_p], c_int, check_int)
 ffi('read_disk_open', [c_archive_p, c_char_p], c_int, check_int)
 ffi('read_disk_open_w', [c_archive_p, c_wchar_p], c_int, check_int)
 ffi('read_disk_descend', [c_archive_p], c_int, check_int)
+ffi('read_disk_set_symlink_hybrid', [c_archive_p], c_int, check_int)
+ffi('read_disk_set_symlink_logical', [c_archive_p], c_int, check_int)
+ffi('read_disk_set_symlink_physical', [c_archive_p], c_int, check_int)
 
 # archive_read_data
 
