@@ -437,6 +437,14 @@ class ArchiveEntry:
 
     @property
     def stored_digests(self):
+        """The file's hashes stored in the archive.
+
+        libarchive only supports reading and writing digests from and to 'mtree'
+        files. Setting the digests requires at least version 3.8.0 of libarchive
+        (released in May 2025). It also requires including the names of the
+        digest algorithms in the string of options passed to the archive writer
+        (e.g. `file_writer(archive_path, 'mtree', options='md5,rmd160,sha256')`).
+        """
         return {name: self.get_stored_digest(name) for name in ffi.DIGEST_ALGORITHMS}
 
     @stored_digests.setter
