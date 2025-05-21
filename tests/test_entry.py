@@ -162,9 +162,9 @@ fake_hashes = dict(
 )
 mtree = (
     '#mtree\n'
-    './empty.txt nlink=0 time=0.0 mode=664 gid=0 uid=0 type=file size=0 '
-    f'md5={'21'*16} rmd160={'21'*20} sha1={'21'*20} sha256={'21'*32} '
-    f'sha384={'21'*48} sha512={'21'*64}\n'
+    './empty.txt nlink=0 time=0.0 mode=664 gid=0 uid=0 type=file size=42 '
+    f'md5digest={'21'*16} rmd160digest={'21'*20} sha1digest={'21'*20} '
+    f'sha256digest={'21'*32} sha384digest={'21'*48} sha512digest={'21'*64}\n'
 )
 
 
@@ -180,9 +180,10 @@ def test_reading_entry_digests(tmpdir):
 )
 def test_writing_entry_digests(tmpdir):
     archive_path = str(tmpdir / 'mtree')
-    with file_writer(archive_path, 'mtree') as archive:
+    options = ','.join(fake_hashes.keys())
+    with file_writer(archive_path, 'mtree', options=options) as archive:
         # Add an empty file, with fake hashes.
-        archive.add_file_from_memory('empty.txt', 0, b'', stored_digests=fake_hashes)
+        archive.add_file_from_memory('empty.txt', 42, (), stored_digests=fake_hashes)
     with open(archive_path) as f:
         libarchive_mtree = f.read()
         assert libarchive_mtree == mtree
