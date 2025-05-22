@@ -1,9 +1,10 @@
 from contextlib import contextmanager
-from ctypes import create_string_buffer
+from ctypes import create_string_buffer, string_at
 from enum import IntEnum
 import math
 
 from . import ffi
+from .exception import ArchiveError
 
 
 class FileType(IntEnum):
@@ -86,6 +87,7 @@ class ArchiveEntry:
             rdev (int | Tuple[int, int]): device number, if the file is a device
             rdevmajor (int): major part of the device number
             rdevminor (int): minor part of the device number
+            stored_digests (dict[str, bytes]): hashes of the file's contents
         """
         if header_codec:
             self.header_codec = header_codec
@@ -432,6 +434,64 @@ class ArchiveEntry:
     @rdevminor.setter
     def rdevminor(self, value):
         ffi.entry_set_rdevminor(self._entry_p, value)
+
+    @property
+    def stored_digests(self):
+        """The file's hashes stored in the archive.
+
+        libarchive only supports reading and writing digests from and to 'mtree'
+        files. Setting the digests requires at least version 3.8.0 of libarchive
+        (released in May 2025). It also requires including the names of the
+        digest algorithms in the string of options passed to the archive writer
+        (e.g. `file_writer(archive_path, 'mtree', options='md5,rmd160,sha256')`).
+        """
+        return {name: self.get_stored_digest(name) for name in ffi.DIGEST_ALGORITHMS}
+
+    @stored_digests.setter
+    def stored_digests(self, values):
+        for name, value in values.items():
+            self.set_stored_digest(name, value)
+
+    def get_stored_digest(self, algorithm_name):
+        algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
+        try:
+            ptr = ffi.entry_digest(self._entry_p, algorithm.libarchive_id)
+        except AttributeError:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support reading entry digests"
+            ) from None
+        except ArchiveError:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
+            ) from None
+        return string_at(ptr, algorithm.bytes_length)
+
+    def set_stored_digest(self, algorithm_name, value):
+        algorithm = ffi.DIGEST_ALGORITHMS[algorithm_name]
+        expected_length = algorithm.bytes_length
+        if len(value) != expected_length:
+            raise ValueError(
+                f"invalid input digest: expected {expected_length} bytes, "
+                f"got {len(value)}"
+            )
+        try:
+            retcode = ffi.entry_set_digest(
+                self._entry_p,
+                algorithm.libarchive_id,
+                (expected_length * ffi.c_ubyte).from_buffer_copy(value)
+            )
+        except AttributeError:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support writing entry digests"
+            ) from None
+        if retcode < 0:
+            raise NotImplementedError(
+                f"the libarchive being used (version {ffi.version_number()}, path "
+                f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
+            ) from None
 
 
 class ConsumedArchiveEntry(ArchiveEntry):

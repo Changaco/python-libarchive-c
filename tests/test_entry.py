@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from codecs import open
 import json
 import locale
 from os import environ, stat
@@ -9,13 +6,11 @@ import unicodedata
 
 import pytest
 
-from libarchive import ArchiveError, memory_reader, memory_writer
+from libarchive import ArchiveError, ffi, file_writer, memory_reader, memory_writer
 from libarchive.entry import ArchiveEntry, ConsumedArchiveEntry, PassedArchiveEntry
 
 from . import data_dir, get_entries, get_tarinfos
 
-
-text_type = unicode if str is bytes else str  # noqa: F821
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -106,7 +101,7 @@ def check_entries(test_file, regen=False, ignore=''):
         # Normalize all unicode (can vary depending on the system)
         for d in (e1, e2):
             for key in d:
-                if isinstance(d[key], text_type):
+                if isinstance(d[key], str):
                     d[key] = unicodedata.normalize('NFC', d[key])
         assert e1 == e2
 
@@ -155,3 +150,40 @@ def test_non_ASCII_encoding_of_file_metadata():
     with memory_reader(buf, header_codec='cp037') as archive:
         entry = next(iter(archive))
         assert entry.pathname == file_name
+
+
+fake_hashes = dict(
+    md5=b'!' * 16,
+    rmd160=b'!' * 20,
+    sha1=b'!' * 20,
+    sha256=b'!' * 32,
+    sha384=b'!' * 48,
+    sha512=b'!' * 64,
+)
+mtree = (
+    '#mtree\n'
+    './empty.txt nlink=0 time=0.0 mode=664 gid=0 uid=0 type=file size=42 '
+    f'md5digest={'21'*16} rmd160digest={'21'*20} sha1digest={'21'*20} '
+    f'sha256digest={'21'*32} sha384digest={'21'*48} sha512digest={'21'*64}\n'
+)
+
+
+def test_reading_entry_digests(tmpdir):
+    with memory_reader(mtree.encode('ascii')) as archive:
+        entry = next(iter(archive))
+        assert entry.stored_digests == fake_hashes
+
+
+@pytest.mark.xfail(
+    condition=ffi.version_number() < 3008000,
+    reason="libarchive < 3.8",
+)
+def test_writing_entry_digests(tmpdir):
+    archive_path = str(tmpdir / 'mtree')
+    options = ','.join(fake_hashes.keys())
+    with file_writer(archive_path, 'mtree', options=options) as archive:
+        # Add an empty file, with fake hashes.
+        archive.add_file_from_memory('empty.txt', 42, (), stored_digests=fake_hashes)
+    with open(archive_path) as f:
+        libarchive_mtree = f.read()
+        assert libarchive_mtree == mtree
