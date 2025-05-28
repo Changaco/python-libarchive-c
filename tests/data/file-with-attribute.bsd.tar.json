@@ -1,0 +1,20 @@
+[
+  {
+    "gid": 1000,
+    "isblk": false,
+    "ischr": false,
+    "isdev": false,
+    "isdir": false,
+    "isfifo": false,
+    "islnk": false,
+    "isreg": true,
+    "issym": false,
+    "linkpath": null,
+    "mode": "rwx------",
+    "mtime": 1748164058.1061919,
+    "path": "foo",
+    "size": 4,
+    "uid": 1000,
+    "xattrs": { "user.tags": "mytag" }
+  }
+]

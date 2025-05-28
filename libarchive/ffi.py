@@ -205,6 +205,10 @@ ffi('entry_gname', [c_archive_entry_p], c_char_p)
 ffi('entry_uname_w', [c_archive_entry_p], c_wchar_p)
 ffi('entry_gname_w', [c_archive_entry_p], c_wchar_p)
 
+ffi('entry_xattr_count', [c_archive_entry_p], c_uint)
+ffi('entry_xattr_reset', [c_archive_entry_p], c_uint)
+ffi('entry_xattr_next', [c_archive_entry_p, POINTER(c_char_p), POINTER(c_void_p), POINTER(c_size_t)], c_uint)
+
 ffi('entry_set_size', [c_archive_entry_p, c_longlong], None)
 ffi('entry_set_filetype', [c_archive_entry_p, c_uint], None)
 ffi('entry_set_uid', [c_archive_entry_p, c_longlong], None)

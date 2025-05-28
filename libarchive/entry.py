@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from ctypes import create_string_buffer, string_at
+from ctypes import byref, c_char_p, create_string_buffer, c_size_t, c_void_p, string_at
 from enum import IntEnum
 import math
 
@@ -492,6 +492,23 @@ class ArchiveEntry:
                 f"the libarchive being used (version {ffi.version_number()}, path "
                 f"{ffi.libarchive_path}) doesn't support {algorithm_name} digests"
             ) from None
+
+    def get_xattrs(self):
+        """Returns the extended attributes.
+        """
+        xattrs = {}
+
+        ffi.entry_xattr_reset(self._entry_p)
+        xattr_next = ffi.entry_xattr_next
+
+        key, value, value_size = c_char_p(), c_void_p(), c_size_t()
+        key_p, value_p, value_size_p = byref(key), byref(value), byref(value_size)
+
+        while True:
+            return_code = xattr_next(self._entry_p, key_p, value_p, value_size_p)
+            if return_code != ffi.ARCHIVE_OK:
+                break
+            yield key.value, string_at(value.value, value_size.value)
 
 
 class ConsumedArchiveEntry(ArchiveEntry):

@@ -63,7 +63,9 @@ def get_entries(location):
                 'isfifo': entry.isfifo,
                 'isdev': entry.isdev,
                 'uid': entry.uid,
-                'gid': entry.gid
+                'gid': entry.gid,
+                # Convert to str because JSON cannot differentiate between str and bytes.
+                'xattrs': {key.decode('utf-8'): value.decode('utf-8') for key,value in entry.get_xattrs()},
             }
 
 
