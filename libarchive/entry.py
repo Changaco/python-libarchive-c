@@ -95,6 +95,11 @@ class ArchiveEntry:
             setattr(self, name, value)
 
     @property
+    def pointer(self):
+        """Returns the FFI pointer to the `archive_entry` struct"""
+        return self._entry_p
+
+    @property
     def filetype(self):
         return ffi.entry_filetype(self._entry_p)
 

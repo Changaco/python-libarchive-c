@@ -34,6 +34,11 @@ class ArchiveWrite:
         self._pointer = archive_p
         self.header_codec = header_codec
 
+    @property
+    def pointer(self):
+        """Returns the FFI pointer to the `archive_write` struct"""
+        return self._pointer
+
     def add_entries(self, entries):
         """Add the given entries to the archive.
         """
