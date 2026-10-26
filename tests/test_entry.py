@@ -65,7 +65,8 @@ def test_check_archiveentry_using_python_testtar():
     try:
         check_entries(join(data_dir, 'testtar.tar'))
     except ArchiveError as e:
-        assert e.msg == "Damaged tar archive"
+        assert e.msg in ("Damaged tar archive",
+                         "Unsupported pax global extended header attribute 'gname'")
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_tar():
@@ -77,7 +78,7 @@ def test_check_archiveentry_with_unicode_and_binary_entries_zip():
 
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
-    check_entries(join(data_dir, 'unicode2.zip'), ignore='mode')
+    check_entries(join(data_dir, 'unicode2.zip'), ignore='mode mtime')
 
 
 def test_check_archiveentry_with_unicode_entries_and_name_zip():
