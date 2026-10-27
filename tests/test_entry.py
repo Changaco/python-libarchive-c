@@ -46,6 +46,7 @@ def test_entry_properties():
             assert b'rw' in entry.strmode
             assert entry.pathname == entry.path
             assert entry.pathname == entry.name
+            assert not list(entry.get_xattrs())
 
 
 def test_check_ArchiveEntry_against_TarInfo():
@@ -54,6 +55,7 @@ def test_check_ArchiveEntry_against_TarInfo():
         tarinfos = list(get_tarinfos(path))
         entries = list(get_entries(path))
         for tarinfo, entry in zip(tarinfos, entries):
+            del entry['xattrs']  # tarfile stores xattrs in paxheaders['LIBARCHIVE.xattr.*'].
             assert tarinfo == entry
         assert len(tarinfos) == len(entries)
 
@@ -76,6 +78,8 @@ def test_check_archiveentry_with_unicode_and_binary_entries_tar():
 def test_check_archiveentry_with_unicode_and_binary_entries_zip():
     check_entries(join(data_dir, 'unicode.zip'))
 
+def test_check_archiveentry_with_extended_attributes():
+    check_entries(join(data_dir, 'file-with-attribute.bsd.tar'))
 
 def test_check_archiveentry_with_unicode_and_binary_entries_zip2():
     check_entries(join(data_dir, 'unicode2.zip'), ignore='mode mtime')
