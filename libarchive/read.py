@@ -31,6 +31,11 @@ class ArchiveRead:
             entry.__class__ = PassedArchiveEntry
 
     @property
+    def pointer(self):
+        """Returns the FFI pointer to the `archive_read` struct"""
+        return self._pointer
+
+    @property
     def bytes_read(self):
         return ffi.filter_bytes(self._pointer, -1)
 
