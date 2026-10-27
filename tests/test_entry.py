@@ -187,4 +187,9 @@ def test_writing_entry_digests(tmpdir):
         archive.add_file_from_memory('empty.txt', 42, (), stored_digests=fake_hashes)
     with open(archive_path) as f:
         libarchive_mtree = f.read()
-        assert libarchive_mtree == mtree
+
+    # rmd160 might be missing if openssl >= 3.0 is used without "legacy providers"
+    expected = (mtree if 'rmd160' in libarchive_mtree else
+                ' '.join(item for item in mtree.split(' ') if 'rmd160' not in item))
+
+    assert libarchive_mtree == expected
